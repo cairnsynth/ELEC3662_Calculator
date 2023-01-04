@@ -34,18 +34,15 @@ void keypad_init(void) {								/*Initialise keypad*/
 }
 
 unsigned char keypad_read(void) {						/*Read button pressed and decode to char*/
-	int x=0,y=0;															//Loop iterators
-	
+	int x=0, y=0;															//Loop iterators
 	for(x = 0; x < 4; x++) {									//Loop through columns
-		GPIO_PORTE_DATA_R = (1U << x);						//Set column high
+		GPIO_PORTE_DATA_R = (0x01 << x);						//Set column high
 		pll_delay_us(20);
 		for(y = 0; y < 4; y++) {								//Loop through rows
-			if((GPIO_PORTD_DATA_R & 0x0F) & (1U << y)) {		//If row input high
-				return keyActual[y][x];										//Return corresponding char
-				break;															//Exit loop/function
+			if(GPIO_PORTD_DATA_R & (0x01 << y)) {		//If row input high
+				return key[y][x];										//Return corresponding char
 			}
 		}
-		//pll_delay_us(20);
 	}
 	return 'X';
 }

@@ -2,8 +2,11 @@
 #define UTILITY_H
 
 char* copy_string(char* destination, const char* source);
-void int_to_string(int i, char* str);
-void float_to_string(float f, char* str, int res);
+void reverse_string(char* str, int length);
+int int_to_string(int i, char* str, int d);
+void double_to_string(double f, char* str, int res);
 int get_int_length(int i);
+unsigned int_exp(unsigned x, unsigned y);
+void add_digit(double* val, int digit, int dF, int* dR);
 
-#endif //UTILITY_H
+#endif

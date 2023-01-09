@@ -13,7 +13,7 @@
 char get_input(void);
 void clear_calculator(void);
 void display(void);
-void calculate(void);
+void calculate(char str[]);
 
 char input;
 char inputBuffer[100];
@@ -42,46 +42,41 @@ int main(void) {
 	pll_delay_ms(1000);												//Splash screen delay
 	lcd_clear();															//Clear screen
 	
-	calculate();
-	
-	pll_delay_ms(1000);
+
 	
 	
 	
-	//clear_calculator();
 	
-	
-	
-	/*
 	while(1) {
-		input = get_input();
-		switch(input) {
-			case EQUALS: {
-				res = shunting_yard(inputBuffer);
-				lcd_goto(1, 0);
-				double_to_string(res.value, outputBuffer, 5);
-				lcd_print_string(outputBuffer);
+		clear_calculator();
+		while(input != EQUALS) {
+			input = get_input();
+			switch(input) {
+				case CLEAR: {
+					inputIndex -= 1;
+					inputBuffer[inputIndex] = '\0';
+					break;
+				}
+				case ALLCLEAR: {
+					clear_calculator();
+					break;
+				}
+				default: {
+					inputBuffer[inputIndex] = input;
+					inputIndex++;
+				}
 			}
-			case CLEAR: {
-				inputIndex -= 1;
-				inputBuffer[inputIndex] = '\0';
-				break;
-			}
-			case ALLCLEAR: {
-				clear_calculator();
-				break;
-			}
-			default: {
-				inputBuffer[inputIndex] = input;
-				inputIndex++;
-			}
+			display();
 		}
-		display();
+		calculate(inputBuffer);
+		
+		get_input();
+		
 		//lcd_clear();
 		//lcd_print_char(input);
 		pll_delay_ms(10);
 	};
-	*/
+	
 }
 
 char get_input(void) {
@@ -91,7 +86,7 @@ char get_input(void) {
 	while(1) {
 		char i = keypad_read();
 		if(i != prevInput && i != 'X' && inputIndex < INPUT_BUFFER_SIZE) {
-				prevInput = i;
+			prevInput = i;
 			
 			if(i == SHIFT) {
 				shiftFlag = !shiftFlag;
@@ -99,19 +94,44 @@ char get_input(void) {
 			else {
 				switch(i) {
 					case PLUS: {
-						prevInput = i + ((TIMES - PLUS) * shiftFlag);
-						out = i + ((TIMES - PLUS) * shiftFlag);
+						switch(shiftFlag) {
+							case 1: out = TIMES;
+								break;
+							default: out = PLUS;
+								break;
+						}
+						break;
 					}
 					case MINUS: {
-						prevInput = i + ((DIVIDE - i) * shiftFlag);
-						out = i + ((DIVIDE - i) * shiftFlag);
+						switch(shiftFlag) {
+							case 1: out = DIVIDE;
+								break;
+							default: out = MINUS;
+								break;
+						}
+						break;
 					}
 					case CLEAR: {
-						prevInput = i + ((ALLCLEAR - i) * shiftFlag);
-						out = i + ((ALLCLEAR - i) * shiftFlag);
+						switch(shiftFlag) {
+							case 1: out = ALLCLEAR;
+								break;
+							default: out = CLEAR;
+								break;
+						}
+						break;
+					}
+					case DECIMAL: {
+						switch(shiftFlag) {
+							case 1: out = EXPONENT;
+								break;
+							default: out = DECIMAL;
+								break;
+						}
+						break;
 					}
 					default: {
 						out = i;
+						break;
 					}
 				}
 				
@@ -149,36 +169,29 @@ void display(void) {
 			lcd_print_char(inputBuffer[count]);
 		}
 	}
-	lcd_goto(1, 0);
-	for(count = 0; count < SCREEN_WIDTH; count++) {
-		lcd_print_char(outputBuffer[count]);
-	}
-	lcd_goto(0, 0);
+	lcd_goto(1,0);
+	lcd_print_string(outputBuffer);
 }
 
-void calculate(void) {
+void calculate(char str[]) {
 	lcd_clear();
-	errFlag = tokenise(&tokenStack, testStr);
+	inputBuffer[inputIndex] = '\0';
+	errFlag = tokenise(&tokenStack, str);
 	shunt(&tokenStack, &operatorStack, &outputStack);
 	errFlag |= result(&outputStack, &resultStack);
 	
 	lcd_clear();
-	
+	lcd_goto(1,0);
 	switch(errFlag) {
 		case ERR: {
-			lcd_goto(1,0);
 			lcd_print_string("SYNTAX ERR");
 			break;
 		}
 		case NAN: {
-			lcd_goto(1,0);
 			lcd_print_string("MATH ERR");
 			break;
 		}
 		default: {
-			sprintf(outputBuffer, "%f", resultStack.stack[0].value);
-			lcd_print_string(outputBuffer);
-			lcd_goto(1,0);
 			double_to_string(resultStack.stack[0].value, outputBuffer, 6);
 			lcd_print_string(outputBuffer);
 			break;

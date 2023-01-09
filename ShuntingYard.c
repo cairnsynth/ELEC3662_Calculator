@@ -39,7 +39,7 @@ int tokenise(Stack* t, char i[]) {
 					debug_mess("OPERATION");
             tempToken.op = OPERAND;                                                     //Store operand and value in temp token
             tempToken.value = tempVal;
-            if(count > 0 && (t->stack[t->stackCnt-1].op > 0 && t->stack[t->stackCnt-2].op > 0)) {                       //Double operator handling
+            if(count > 2 && (t->stack[t->stackCnt-1].op > 0 && t->stack[t->stackCnt-2].op > 0)) {                       //Double operator handling
               debug_mess("DBL OP");  
 							int tmpOp = t->stack[t->stackCnt-1].op;                                 //Store 2nd operation before pop
                 stack_pop(t);                                                           //Pop

@@ -47,8 +47,8 @@ enum Input {
 	EXPONENT = 'E',
 	EQUALS = '=',
 	SHIFT = 'S',
-	CLEAR = 'c',
-	ALLCLEAR = 'C'
+	CLEAR = 'C',
+	ALLCLEAR = 'A'
 		};
 
 /*Initialises keypad GPIO*/

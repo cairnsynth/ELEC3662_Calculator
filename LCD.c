@@ -128,3 +128,13 @@ void lcd_goto(unsigned char l, unsigned char p) {					/*Goto position on LCD scr
 	lcd_write_command(0x08 + (l << 2));											//l == 0: line 1, l == 1: line 2
 	lcd_write_command(p);																		//position 0-16
 }
+
+void debug_mess(char str[]) {
+	if(DEBUG_ON) {
+		lcd_clear();
+		pll_delay_ms(100);
+		lcd_print_string("D: ");
+		lcd_print_string(str);
+		pll_delay_ms(500);
+	}
+}

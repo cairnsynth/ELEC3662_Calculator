@@ -429,6 +429,16 @@
               <FileType>5</FileType>
               <FilePath>.\Utility.h</FilePath>
             </File>
+            <File>
+              <FileName>ShuntingYard.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\ShuntingYard.h</FilePath>
+            </File>
+            <File>
+              <FileName>ShuntingYard.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\ShuntingYard.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -38,7 +38,18 @@
 #define R3											(*((volatile unsigned long *) 0x40024010))
 #define R4											(*((volatile unsigned long *) 0x40024020))
 	
-
+enum Input {
+	TIMES = 'x',
+	DIVIDE = '/',
+	PLUS = '+',
+	MINUS = '-',
+	DECIMAL = '.',
+	EXPONENT = 'E',
+	EQUALS = '=',
+	SHIFT = 'S',
+	CLEAR = 'c',
+	ALLCLEAR = 'C'
+		};
 
 /*Initialises keypad GPIO*/
 void keypad_init(void);

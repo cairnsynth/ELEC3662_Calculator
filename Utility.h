@@ -8,5 +8,6 @@ void double_to_string(double f, char* str, int res);
 int get_int_length(int i);
 unsigned int_exp(unsigned x, unsigned y);
 void add_digit(double* val, int digit, int dF, int* dR);
+double double_absolute(double in);
 
 #endif

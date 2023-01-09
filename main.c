@@ -2,178 +2,126 @@
 #include "LCD.h"
 #include "PLL.h"
 #include "Utility.h"
+#include "ShuntingYard.h"
+#include <stdio.h>
 
 #define SCREEN_WIDTH 16
 #define OUTPUT_BUFFER_SIZE 16
 #define INPUT_BUFFER_SIZE 100
 #define MAX_INPUT_VALUES INPUT_BUFFER_SIZE/2
 
-void get_input(void);
-void calculate(void);
+char get_input(void);
 void clear_calculator(void);
 void display(void);
+void calculate(void);
 
-float inputValues[MAX_INPUT_VALUES];
-char operations[MAX_INPUT_VALUES];
-
-char inputBuffer[INPUT_BUFFER_SIZE];
+char input;
+char inputBuffer[100];
 int inputIndex = 0;
-char outputBuffer[OUTPUT_BUFFER_SIZE];
+char outputBuffer[50];
 
 char prevInput;
-
 unsigned int shiftFlag = 0;
+Token res = {0.0, -1};
+Stack tokenStack;
+Stack operatorStack;
+Stack outputStack;
+Stack resultStack;
+int errFlag = 0;
+
+char testStr[] = "1-99+3x10";
+int looper = 0;
 
 int main(void) {
 	pll_init();																//pll must be initialised first as it is used in LCD initialisation
 	lcd_init();																//lcd initialisation
 	keypad_init();														//keypad initialisation
-	lcd_print_string("ELEC3662 Calc!");				//Display splash screen
+	lcd_print_string("Elec3662 Calc!");				//Display splash screen
 	lcd_goto(1,0);
 	lcd_print_string("SID: 201331120");
 	pll_delay_ms(1000);												//Splash screen delay
 	lcd_clear();															//Clear screen
 	
-	clear_calculator();
+	calculate();
 	
+	pll_delay_ms(1000);
+	
+	
+	
+	//clear_calculator();
+	
+	
+	
+	/*
 	while(1) {
-		get_input();
-		pll_delay_ms(100);
-	};
-	
-}
-
-void get_input(void) {
-	char input = keypad_read();
-	if(input != prevInput && input != 'X' && inputIndex < INPUT_BUFFER_SIZE) {
+		input = get_input();
 		switch(input) {
-			case '=':
-				calculate();
-				break;
-			case '+': {
-				switch(shiftFlag) {
-					case 1:
-						inputBuffer[inputIndex] = 'x';
-						break;
-					default:
-						inputBuffer[inputIndex] = '+';
-						break;
-				}
-				inputIndex++;
-				shiftFlag = 0;
+			case EQUALS: {
+				res = shunting_yard(inputBuffer);
+				lcd_goto(1, 0);
+				double_to_string(res.value, outputBuffer, 5);
+				lcd_print_string(outputBuffer);
+			}
+			case CLEAR: {
+				inputIndex -= 1;
+				inputBuffer[inputIndex] = '\0';
 				break;
 			}
-			case '-': {
-				switch(shiftFlag) {
-					case 1:
-						inputBuffer[inputIndex] = '/';
-						break;
-					default:
-						inputBuffer[inputIndex] = '-';
-						break;
-				}
-				inputIndex++;
-				shiftFlag = 0;
-				break;
-			}
-			case 'S':
-				shiftFlag = !shiftFlag;
-				break;
-			case 'C': {
-				switch(shiftFlag) {
-					case 1:
-						inputIndex = 0;
-						break;
-					default:
-						inputBuffer[inputIndex-1] = ' ';
-					inputIndex--;
-						break;
-				}
-				shiftFlag = 0;
+			case ALLCLEAR: {
+				clear_calculator();
 				break;
 			}
 			default: {
 				inputBuffer[inputIndex] = input;
 				inputIndex++;
-				break;
 			}
 		}
 		display();
-	}
-	prevInput = input;
-	
+		//lcd_clear();
+		//lcd_print_char(input);
+		pll_delay_ms(10);
+	};
+	*/
 }
 
-void calculate(void) {
-	int i;
-	int inputCount = 0, valCount = 0, operatorCount = 0, decimalFlag=0, decimalPlace=1;
-	double tempVal = 0.0, calcA = 0.0, calcB = 0.0;
-	
-	for(inputCount = 0; inputCount < inputIndex; inputCount++) {
-		if(inputBuffer[inputCount] <= 0x39 && inputBuffer[inputCount] >= 0x30) {
-			add_digit(&tempVal, inputBuffer[inputCount] - '0', decimalFlag, &decimalPlace);
-		} else {
-			if(inputBuffer[inputCount] == '.') {
-				decimalFlag = 1;
-			} else {
-				inputValues[valCount] = tempVal;
-				valCount++;
-				operations[operatorCount] = inputBuffer[inputCount];
-				operatorCount++;
-				tempVal = 0.0;
-				decimalFlag = 0;
-				decimalPlace = 1;
-			}
+char get_input(void) {
+	char out = 'X';
+	shiftFlag = 0;
+	prevInput = 0;
+	while(1) {
+		char i = keypad_read();
+		if(i != prevInput && i != 'X' && inputIndex < INPUT_BUFFER_SIZE) {
+				prevInput = i;
 			
+			if(i == SHIFT) {
+				shiftFlag = !shiftFlag;
+			}
+			else {
+				switch(i) {
+					case PLUS: {
+						prevInput = i + ((TIMES - PLUS) * shiftFlag);
+						out = i + ((TIMES - PLUS) * shiftFlag);
+					}
+					case MINUS: {
+						prevInput = i + ((DIVIDE - i) * shiftFlag);
+						out = i + ((DIVIDE - i) * shiftFlag);
+					}
+					case CLEAR: {
+						prevInput = i + ((ALLCLEAR - i) * shiftFlag);
+						out = i + ((ALLCLEAR - i) * shiftFlag);
+					}
+					default: {
+						out = i;
+					}
+				}
+				
+				//shiftFlag = 0;
+			}
+		}
+		else if (i == 'X' && out != 'X') {
+			return out;
 		}
 	}
-	inputValues[valCount] = tempVal;
-	valCount++;
-	/*
-	//DEBUG: SHOW ALL INPUT VALUES
-	for(i = 0; i < valCount; i++) {
-		double_to_string(inputValues[i], outputBuffer, 3);
-		display();
-		pll_delay_ms(500);
-	}
-	pll_delay_ms(1000);
-	
-	//DEBUG END
-	*/
-	calcA = inputValues[0];
-	for(i = 1; i < valCount; i++) {
-		calcB = inputValues[i];
-		switch(operations[i-1]) {
-			case '+': {
-				calcA += calcB;
-				break;
-			}
-			case '-': {
-				calcA -= calcB;
-				break;
-			}
-			case '*': {
-				calcA *= calcB;
-				break;
-			}
-			case '/': {
-				calcA /= calcB;
-				break;
-			}
-			/*
-			//DEBUG: SHOW CALCULATIONS
-			double_to_string(calcA, outputBuffer, 5);
-			display();
-			pll_delay_ms(500);
-			double_to_string(calcB, outputBuffer, 5);
-			display();
-			pll_delay_ms(500);
-			//DEBUG END
-			*/
-		}
-	}
-	double_to_string(calcA, outputBuffer, 5);
-	display();
 }
 
 void clear_calculator(void) {
@@ -207,3 +155,34 @@ void display(void) {
 	}
 	lcd_goto(0, 0);
 }
+
+void calculate(void) {
+	lcd_clear();
+	errFlag = tokenise(&tokenStack, testStr);
+	shunt(&tokenStack, &operatorStack, &outputStack);
+	errFlag |= result(&outputStack, &resultStack);
+	
+	lcd_clear();
+	
+	switch(errFlag) {
+		case ERR: {
+			lcd_goto(1,0);
+			lcd_print_string("SYNTAX ERR");
+			break;
+		}
+		case NAN: {
+			lcd_goto(1,0);
+			lcd_print_string("MATH ERR");
+			break;
+		}
+		default: {
+			sprintf(outputBuffer, "%f", resultStack.stack[0].value);
+			lcd_print_string(outputBuffer);
+			lcd_goto(1,0);
+			double_to_string(resultStack.stack[0].value, outputBuffer, 6);
+			lcd_print_string(outputBuffer);
+			break;
+		}
+	}
+}
+

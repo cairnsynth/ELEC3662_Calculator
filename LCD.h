@@ -28,6 +28,8 @@
 #define GPIO_PORTB_CR_R         (*((volatile unsigned long *) 0x40005524))
 #define GPIO_PORTB_AMSEL_R      (*((volatile unsigned long *) 0x40005528))
 #define GPIO_PORTB_PCTL_R       (*((volatile unsigned long *) 0x4000552C))
+	
+#define DEBUG_ON 1
 
 //Function definitions
 void lcd_init(void);											//Initialise LCD
@@ -39,6 +41,7 @@ void lcd_print_char(char c);							//Print ASCII character to LCD
 void lcd_print_char_literal(char c);
 void lcd_print_string(char s[]);
 void lcd_goto(unsigned char l, unsigned char p);					//Goto position on LCD
+void debug_mess(char str[]);
 
 enum char_type {
 	SYMBOL,

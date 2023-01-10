@@ -43,37 +43,33 @@ int main(void) {
 	lcd_clear();															//Clear screen
 	
 
-	
-	
+	//calculate(testStr);
+	pll_delay_ms(1000);
 	
 	
 	while(1) {
-		clear_calculator();
-		while(input != EQUALS) {
-			input = get_input();
-			switch(input) {
-				case CLEAR: {
-					inputIndex -= 1;
-					inputBuffer[inputIndex] = '\0';
-					break;
-				}
-				case ALLCLEAR: {
-					clear_calculator();
-					break;
-				}
-				default: {
-					inputBuffer[inputIndex] = input;
-					inputIndex++;
-				}
+		input = get_input();
+		switch(input) {
+			case EQUALS: {
+				
+				calculate(inputBuffer);
+				break;
 			}
-			display();
+			case CLEAR: {
+				inputIndex -= 1;
+				inputBuffer[inputIndex] = '\0';
+				break;
+			}
+			case ALLCLEAR: {
+				clear_calculator();
+				break;
+			}
+			default: {
+				inputBuffer[inputIndex] = input;
+				inputIndex++;
+			}
 		}
-		calculate(inputBuffer);
-		
-		get_input();
-		
-		//lcd_clear();
-		//lcd_print_char(input);
+		display();
 		pll_delay_ms(10);
 	};
 	

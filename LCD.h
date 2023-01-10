@@ -13,9 +13,6 @@
 #define GPIO_PORTA_CR_R         (*((volatile unsigned long *) 0x40004524))
 #define GPIO_PORTA_AMSEL_R      (*((volatile unsigned long *) 0x40004528))
 #define GPIO_PORTA_PCTL_R       (*((volatile unsigned long *) 0x4000452C))
-	
-#define EN											(*((volatile unsigned long *) 0x40004010))
-#define RS  										(*((volatile unsigned long *) 0x40004020))
 
 //Port B registers
 #define DATA				(*((volatile unsigned long *) 0x400053FC))
@@ -28,7 +25,12 @@
 #define GPIO_PORTB_CR_R         (*((volatile unsigned long *) 0x40005524))
 #define GPIO_PORTB_AMSEL_R      (*((volatile unsigned long *) 0x40005528))
 #define GPIO_PORTB_PCTL_R       (*((volatile unsigned long *) 0x4000552C))
-	
+
+//Enable and reset pins
+#define EN											(*((volatile unsigned long *) 0x40004010))
+#define RS  										(*((volatile unsigned long *) 0x40004020))
+
+//Enable/disable debug messages
 #define DEBUG_ON 0
 
 //Function definitions
@@ -42,6 +44,8 @@ void lcd_print_char_literal(char c);
 void lcd_print_string(char s[]);
 void lcd_goto(unsigned char l, unsigned char p);					//Goto position on LCD
 void debug_mess(char str[]);
+void lcd_custom_character(unsigned char* character, char location);
+void lcd_splash_animation(void);
 
 enum char_type {
 	SYMBOL,

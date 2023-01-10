@@ -86,7 +86,7 @@ int tokenise(Stack* t, char i[]) {
             case 'x':
                 opType = MUL;
                 break;
-            case '/':
+            case 7:
                 opType = DIV;
                 break;
             case 'E':

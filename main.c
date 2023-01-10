@@ -14,6 +14,7 @@ char get_input(void);
 void clear_calculator(void);
 void display(void);
 void calculate(char str[]);
+void splash_animation(void);
 
 char input;
 char inputBuffer[100];
@@ -29,23 +30,16 @@ Stack outputStack;
 Stack resultStack;
 int errFlag = 0;
 
-char testStr[] = "1-99+3x10";
-int looper = 0;
+
 
 int main(void) {
 	pll_init();																//pll must be initialised first as it is used in LCD initialisation
 	lcd_init();																//lcd initialisation
 	keypad_init();														//keypad initialisation
-	lcd_print_string("Elec3662 Calc!");				//Display splash screen
-	lcd_goto(1,0);
-	lcd_print_string("SID: 201331120");
-	pll_delay_ms(1000);												//Splash screen delay
-	lcd_clear();															//Clear screen
 	
-
-	//calculate(testStr);
-	pll_delay_ms(1000);
 	
+	
+	lcd_splash_animation();
 	
 	while(1) {
 		input = get_input();
@@ -130,8 +124,6 @@ char get_input(void) {
 						break;
 					}
 				}
-				
-				//shiftFlag = 0;
 			}
 		}
 		else if (i == 'X' && out != 'X') {
@@ -204,21 +196,6 @@ void calculate(char str[]) {
 			outputBuffer[7] = 'R';
 			outputBuffer[8] = '\0';
 			break;
-		}
-		case OOR: {
-			outputBuffer[0] = 'O';
-			outputBuffer[1] = 'U';
-			outputBuffer[2] = 'T';
-			outputBuffer[3] = '_';
-			outputBuffer[4] = 'O';
-			outputBuffer[5] = 'F';
-			outputBuffer[6] = '_';
-			outputBuffer[7] = 'R';
-			outputBuffer[8] = 'A';
-			outputBuffer[9] = 'N';
-			outputBuffer[10] = 'G';
-			outputBuffer[11] = 'E';
-			outputBuffer[12] = '\0';
 		}
 		default: {
 			double_to_string(resultStack.stack[0].value, outputBuffer, 6);

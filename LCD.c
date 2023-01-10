@@ -1,6 +1,13 @@
 #include "LCD.h"
 #include "PLL.h"
 
+unsigned char customDivide[8] = {0x0,0x4,0x0,0x1f,0x0,0x4,0x0,0x0};
+unsigned char dith1[8] = {0x1f,0x1f,0x1f,0x1f,0x1f,0x1f,0x1f,0x1f};
+unsigned char dith2[8] = {0x0a,0x17,0x0a,0x1d,0x0a,0x17,0x0a,0x1d};
+unsigned char dith3[8] = {0x15,0x08,0x15,0x02,0x15,0x08,0x15,0x0a};
+unsigned char snake1[8] = {0x0,0xe,0x15,0x1,0xf,0x12,0x0,0x0};
+unsigned char snake2[8] = {0x0,0x0,0x1f,0xa,0x0,0x1f,0x0,0x0};
+unsigned char snake3[8] = {0x0,0x0,0x7,0xa,0x10,0x1f,0x0,0x0};
 
 void lcd_init(void) {												/*Initialise LCD*/
 	volatile unsigned long delay;
@@ -21,26 +28,6 @@ void lcd_init(void) {												/*Initialise LCD*/
 	GPIO_PORTB_AFSEL_R &= 0x00;								//Disable Port B alt function
 	GPIO_PORTB_PUR_R   &= 0x00;								//Disable pull-up resistors
 	GPIO_PORTB_DEN_R   |= 0xFF;								//Enable digital I/O on PB3-0
-	
-	/*
-																						//LCD Initialisation by command
-	pll_delay_ms(100);												//Wait 100ms after Vcc rises above 4.5V
-	lcd_write_command(0x03);									
-	pll_delay_ms(5);													//Wait more than 4.1ms
-	lcd_write_command(0x03);
-	pll_delay_100u();													//Wait more than 100us
-	lcd_write_command(0x03);
-	pll_delay_100u();
-	lcd_write_command(0x02);									//Set 4 bit interface
-	pll_delay_100u();
-	lcd_write_command(0x02);									//Set number of lines and font
-	lcd_write_command(0x0F);
-	lcd_write_command(0x00);									//Display on/off
-	lcd_write_command(0x80);
-	lcd_write_command(0x00);									//Display clear
-	lcd_write_command(0x01);
-	
-	*/
 	
 	pll_delay_ms(100);												//Wait >40ms after Vcc rises above 4.5V
 	lcd_write_command(0x03);									//"Function set" instruction
@@ -68,6 +55,14 @@ void lcd_init(void) {												/*Initialise LCD*/
 	
 	pll_delay_ms(500);												//Short delay
 	lcd_clear();															//Clear LCD before use
+
+	lcd_custom_character(customDivide, 7);
+	lcd_custom_character(dith1, 0);
+	lcd_custom_character(dith2, 1);
+	lcd_custom_character(dith3, 2);
+	lcd_custom_character(snake1, 3);
+	lcd_custom_character(snake2, 4);
+	lcd_custom_character(snake3, 5);
 }
 
 void lcd_en_pulse(void) {												/*Enable Pulse*/								
@@ -137,4 +132,190 @@ void debug_mess(char str[]) {
 		lcd_print_string(str);
 		pll_delay_ms(500);
 	}
+}
+
+//https://circuitdigest.com/microcontroller-projects/custom-characters-on-lcd-using-pic16f877a
+void lcd_custom_character(unsigned char* character, char location) {
+	int line = 0;
+	char store = (0x40 + location*8);
+	lcd_write_command(store >> 4);
+	lcd_write_command(store);
+	for(line = 0; line < 8; line++) {
+		lcd_print_char(character[line]);
+	}
+	lcd_write_command(0x00);
+	lcd_write_command(0x02);
+}
+
+void lcd_splash_animation(void) {
+	int count, character;
+	lcd_clear();
+	pll_delay_ms(50);
+	for(character = 2; character >= 0; character--) {
+		lcd_goto(0,0);
+		for(count = 0; count < 16; count++) {
+			lcd_print_char(character);
+		}
+		lcd_goto(1,0);
+		for(count = 0; count < 16; count++) {
+			lcd_print_char(character);
+		}
+		pll_delay_ms(25);
+	}
+	pll_delay_ms(100);
+	for(character = 0; character < 3; character++) {
+		lcd_goto(0,0);
+		for(count = 0; count < 16; count++) {
+			lcd_print_char(character);
+		}
+		lcd_goto(1,0);
+		for(count = 0; count < 16; count++) {
+			lcd_print_char(character);
+		}
+		pll_delay_ms(25);
+	}
+	lcd_clear();
+	pll_delay_ms(250);
+	for(count = 0; count < 16; count++) {
+			lcd_print_char(0);
+			pll_delay_ms(10);
+	}
+	lcd_goto(1,0);
+	for(count = 15; count >= 0; count--) {
+		lcd_goto(1, count);
+			lcd_print_char(0);
+			pll_delay_ms(10);
+	}
+	for(count = 0; count < 16; count++) {
+		 lcd_goto(0, count);
+			lcd_print_char(' ');
+			pll_delay_ms(10);
+	}
+	lcd_goto(1,0);
+	for(count = 15; count >= 0; count--) {
+		 lcd_goto(1, count);
+			lcd_print_char(' ');
+			pll_delay_ms(10);
+	}
+	lcd_goto(0,0);
+	lcd_print_char(3);
+	pll_delay_ms(100);
+	lcd_clear();
+	lcd_print_char(4);
+	lcd_print_char(3);
+	pll_delay_ms(100);
+	lcd_clear();
+	lcd_print_char(4);
+	lcd_print_char(4);
+	lcd_print_char(3);
+	pll_delay_ms(100);
+	lcd_clear();
+	lcd_print_char(5);
+	lcd_print_char(4);
+	lcd_print_char(4);
+	lcd_print_char(3);
+	pll_delay_ms(100);
+	lcd_clear();
+	lcd_print_char('2');
+	lcd_print_char(5);
+	lcd_print_char(4);
+	lcd_print_char(4);
+	lcd_print_char(3);
+	pll_delay_ms(100);
+	lcd_clear();
+	lcd_print_string("62");
+	lcd_print_char(5);
+	lcd_print_char(4);
+	lcd_print_char(4);
+	lcd_print_char(3);
+	pll_delay_ms(100);
+	lcd_clear();
+	lcd_print_string("662");
+	lcd_print_char(5);
+	lcd_print_char(4);
+	lcd_print_char(4);
+	lcd_print_char(3);
+	pll_delay_ms(100);
+	lcd_clear();
+	lcd_print_string("3662");
+	lcd_print_char(5);
+	lcd_print_char(4);
+	lcd_print_char(4);
+	lcd_print_char(3);
+	pll_delay_ms(100);
+	lcd_clear();
+	lcd_print_string("C3662");
+	lcd_print_char(5);
+	lcd_print_char(4);
+	lcd_print_char(4);
+	lcd_print_char(3);
+	pll_delay_ms(100);
+	lcd_clear();
+	lcd_print_string("EC3662");
+	lcd_print_char(5);
+	lcd_print_char(4);
+	lcd_print_char(4);
+	lcd_print_char(3);
+	pll_delay_ms(100);
+	lcd_clear();
+	lcd_print_string("LEC3662");
+	lcd_print_char(5);
+	lcd_print_char(4);
+	lcd_print_char(4);
+	lcd_print_char(3);
+	pll_delay_ms(100);
+	lcd_clear();
+	lcd_print_string("ELEC3662");
+	lcd_print_char(5);
+	lcd_print_char(4);
+	lcd_print_char(4);
+	lcd_print_char(3);
+	pll_delay_ms(100);
+	lcd_clear();
+	lcd_print_string("ELEC3662 ");
+	lcd_print_char(5);
+	lcd_print_char(4);
+	lcd_print_char(4);
+	lcd_print_char(3);
+	pll_delay_ms(100);
+	lcd_clear();
+	lcd_print_string("ELEC3662  ");
+	lcd_print_char(5);
+	lcd_print_char(4);
+	lcd_print_char(4);
+	lcd_print_char(3);
+	pll_delay_ms(100);
+	lcd_clear();
+	lcd_print_string("ELEC3662   ");
+	lcd_print_char(5);
+	lcd_print_char(4);
+	lcd_print_char(4);
+	lcd_print_char(3);
+	pll_delay_ms(100);
+	lcd_clear();
+	lcd_print_string("ELEC3662    ");
+	lcd_print_char(5);
+	lcd_print_char(4);
+	lcd_print_char(4);
+	lcd_print_char(3);
+	pll_delay_ms(100);
+	lcd_clear();
+	lcd_print_string("ELEC3662    ");
+	lcd_print_char(5);
+	lcd_print_char(4);
+	lcd_print_char(4);
+	pll_delay_ms(100);
+	lcd_clear();
+	lcd_print_string("ELEC3662    ");
+	lcd_print_char(5);
+	lcd_print_char(4);
+	pll_delay_ms(100);
+	lcd_clear();
+	lcd_print_string("ELEC3662    ");
+	lcd_print_char(5);
+	pll_delay_ms(100);
+	lcd_clear();
+	lcd_print_string("ELEC3662    ");
+	pll_delay_ms(1000);
+	lcd_clear();
 }

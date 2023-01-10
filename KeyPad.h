@@ -40,7 +40,7 @@
 	
 enum Input {
 	TIMES = 'x',
-	DIVIDE = '/',
+	DIVIDE = 7,
 	PLUS = '+',
 	MINUS = '-',
 	DECIMAL = '.',

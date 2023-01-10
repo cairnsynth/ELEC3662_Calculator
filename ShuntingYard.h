@@ -24,7 +24,8 @@
 enum OpType {                               //Enum used to set operation number and precidence
     OPERAND = 0,                            //No operation or precedence
     ERR = 0x00C,                            //Syntax Error
-    NAN = 0x00E,                            //Math Error
+    NAN = 0x00D,                            //Math Error
+	  OOR = 0x00E,														//Out of range
     NUL = 0x00F,
     EXP = 0x111,                            //Precedence = 1, Op = 1, right-associative
     MUL = 0x022,                            //Precedence = 2, Op = 2, left-associative

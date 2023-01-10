@@ -216,7 +216,7 @@ int result(Stack* outS, Stack* resS) {
                         break;
                     }
                     case DIV: {
-                        if(tmpA.value == 0) {
+                        if(tmpA.value == 0.0) {
                             return NAN;
                         }
                         else {

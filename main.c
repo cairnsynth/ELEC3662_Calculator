@@ -180,12 +180,45 @@ void calculate(char str[]) {
 	lcd_goto(1,0);
 	switch(errFlag) {
 		case ERR: {
-			lcd_print_string("SYNTAX ERR");
+			outputBuffer[0] = 'S';
+			outputBuffer[1] = 'Y';
+			outputBuffer[2] = 'N';
+			outputBuffer[3] = 'T';
+			outputBuffer[4] = 'A';
+			outputBuffer[5] = 'X';
+			outputBuffer[6] = '_';
+			outputBuffer[7] = 'E';
+			outputBuffer[8] = 'R';
+			outputBuffer[9] = 'R';
+			outputBuffer[10] = '\0';
 			break;
 		}
 		case NAN: {
-			lcd_print_string("MATH ERR");
+			outputBuffer[0] = 'M';
+			outputBuffer[1] = 'A';
+			outputBuffer[2] = 'T';
+			outputBuffer[3] = 'H';
+			outputBuffer[4] = '_';
+			outputBuffer[5] = 'E';
+			outputBuffer[6] = 'R';
+			outputBuffer[7] = 'R';
+			outputBuffer[8] = '\0';
 			break;
+		}
+		case OOR: {
+			outputBuffer[0] = 'O';
+			outputBuffer[1] = 'U';
+			outputBuffer[2] = 'T';
+			outputBuffer[3] = '_';
+			outputBuffer[4] = 'O';
+			outputBuffer[5] = 'F';
+			outputBuffer[6] = '_';
+			outputBuffer[7] = 'R';
+			outputBuffer[8] = 'A';
+			outputBuffer[9] = 'N';
+			outputBuffer[10] = 'G';
+			outputBuffer[11] = 'E';
+			outputBuffer[12] = '\0';
 		}
 		default: {
 			double_to_string(resultStack.stack[0].value, outputBuffer, 6);

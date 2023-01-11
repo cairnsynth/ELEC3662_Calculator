@@ -46,6 +46,7 @@ enum Input {
 	DECIMAL = '.',
 	EXPONENT = 'E',
 	EQUALS = '=',
+	PASSWORD = 'P',
 	SHIFT = 'S',
 	CLEAR = 'C',
 	ALLCLEAR = 'A'

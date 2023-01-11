@@ -3,7 +3,7 @@
 #include "PLL.h"
 #include "Utility.h"
 #include "ShuntingYard.h"
-#include <stdio.h>
+#include "Flash.h"
 
 #define SCREEN_WIDTH 16
 #define OUTPUT_BUFFER_SIZE 16
@@ -14,7 +14,8 @@ char get_input(void);
 void clear_calculator(void);
 void display(void);
 void calculate(char str[]);
-void splash_animation(void);
+int enter_pw(void);
+int update_pw(void);
 
 char input;
 char inputBuffer[100];
@@ -30,23 +31,33 @@ Stack outputStack;
 Stack resultStack;
 int errFlag = 0;
 
-
+unsigned long flashAddr = 0;
+unsigned long flashTest = 0x31323334;
+double flashDouble = 0;
+unsigned long flashOut;
+int flashInt = 0;
 
 int main(void) {
 	pll_init();																//pll must be initialised first as it is used in LCD initialisation
 	lcd_init();																//lcd initialisation
 	keypad_init();														//keypad initialisation
+	flash_init();
 	
-	
-	
+	//flash_write(flashTest);
 	lcd_splash_animation();
-	
+	while(!enter_pw()) {pll_delay_ms(500);};
+	pll_delay_ms(500);
+	lcd_clear();
 	while(1) {
 		input = get_input();
 		switch(input) {
 			case EQUALS: {
-				
 				calculate(inputBuffer);
+				break;
+			}
+			case PASSWORD: {
+				update_pw();
+				clear_calculator();
 				break;
 			}
 			case CLEAR: {
@@ -116,6 +127,19 @@ char get_input(void) {
 								break;
 							default: out = DECIMAL;
 								break;
+						}
+						break;
+					}
+					case EQUALS: {
+						switch(shiftFlag) {
+							case 1: {
+								out = PASSWORD;
+								break;
+							}
+							default: {
+								out = EQUALS;
+								break;
+							}
 						}
 						break;
 					}
@@ -205,3 +229,55 @@ void calculate(char str[]) {
 	}
 }
 
+int enter_pw(void) {
+	int c;
+	unsigned long entry = 0x00;
+	unsigned long pw;
+	flash_read(&pw);
+	lcd_clear();
+	lcd_print_string("ENTER PW:");
+	lcd_goto(1,0);
+	lcd_print_char(6);
+	for(c = 0; c < 4; c++) {
+		entry = (entry << 8) + get_input();
+		lcd_print_char('*');
+	}
+		lcd_goto(1,1);
+	if(entry == pw) {
+		lcd_print_string("UNLOCKED");
+		return 1;
+	}
+	else {
+		lcd_print_string("LOCKED");
+		return 0;
+	}
+}
+
+int update_pw(void) {
+	int c;
+	unsigned long newPW = 0x00;
+	lcd_clear();
+	lcd_print_char(6);
+	lcd_print_string("    UPDATE    ");
+	lcd_print_char(6);
+	lcd_goto(1,0);
+	lcd_print_char(6);
+	lcd_print_string("   PASSWORD   ");
+	lcd_print_char(6);
+	pll_delay_ms(1000);
+	while(!enter_pw()) {pll_delay_ms(500);}
+	pll_delay_ms(500);
+	lcd_clear();
+	lcd_print_string("ENTER NEW PW");
+	lcd_goto(1,0);
+	lcd_print_char(6);
+	for(c = 0; c < 4; c++) {
+		newPW = (newPW << 8) + get_input();
+		lcd_print_char('*');
+	}
+	lcd_goto(1,1);
+	lcd_print_string("UPDATED");
+	pll_delay_ms(500);
+	c = flash_write(newPW);
+	return c + 1;
+}

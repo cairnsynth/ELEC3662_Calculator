@@ -1,106 +1,138 @@
 #include "Utility.h"
 
-                                                                    //REF: https://www.techiedelight.com/implement-strcpy-function-c/
+//REF: https://www.techiedelight.com/implement-strcpy-function-c/
 char* copy_string(char* destination, const char* source) {
-	char* ptr;                                                       //Member declaration
-
-	if(destination == 0) {return 0;}                                //If destination is null, return 0
-	ptr = destination;                                              //pointer to destination
-	while((*destination++ = *source++) != '\0');                    //Copy source string to destination
-	*destination = '\0';                                            //terminating null character
-	return ptr;                                                     //return destination
+	char* ptr;
+	// if destination is null, return 0
+	if(destination == 0) {return 0;}
+	// point to destination
+	ptr = destination;
+	// copy source string to destination, adding null terminator
+	while((*destination++ = *source++) != '\0');
+	*destination = '\0';
+	// return destination
+	return ptr;
 }
 
-                                                                    //REF: https://www.geeksforgeeks.org/convert-floating-point-number-string/
+ //REF: https://www.geeksforgeeks.org/convert-floating-point-number-string/
 void reverse_string(char* str, int length) {
-	int i = 0, j = length -1;                                       //member declaration
+	int i = 0, j = length -1;
 	char temp;
-
-	while(i < j) {                                                  //Loop through half of string
-			temp = str[i];                                              //Store current char in temp var
-			str[i] = str[j];                                            //flip char in string
+	// i loops through first half of string, j through second half (backwards)
+	// swap characters
+	// increment/decrement iterators
+	while(i < j) {
+			temp = str[i];
+			str[i] = str[j];
 			str[j] = temp;
-			i++;                                                        //Increment iterators
+			i++;
 			j--;
 	}
 }
 
 int int_to_string(int i, char str[], int d) {
-	int digit, count, length = get_int_length(i), isNegative = 0;         //Member declaration, get length of input integer
-
+	// get length of input integer
+	int digit, count, length = get_int_length(i), isNegative = 0;
+	// set negative flag if integer is negative
 	if(i < 0) {isNegative = 1;}
+	// get absolute value (remove negative)
 	i = (int)double_absolute(i);
-	for(count = 0; count < length; count++) {                       //Loop through integer
-			digit = i % 10;                                             //Get remainder from 10 / last digit
-			i = i / 10;                                                 //Divide by 10
-			str[count] = '0' + digit;                                   //Add digit to string as character
+	// loop through integer
+	// get remainder from 10 (last digit)
+	// divide input by 10
+	// insert digit into string as character
+	for(count = 0; count < length; count++) {
+			digit = i % 10;
+			i = i / 10;
+			str[count] = '0' + digit;
 	}
+	// insert negative sign to string if input was negative
 	if(isNegative) {
 		str[length] = '-';
 		length++;
 	}
-	reverse_string(str, length);                                    //Reverse string
-	//str[length] = '\0';                                             //Add terminating null character
-	return length;                                                  //Return length
+	// reverse string
+	reverse_string(str, length);
+	// return length, used in double_to_string
+	return length;
 }
 
-                                                                    //REF: https://www.geeksforgeeks.org/convert-floating-point-number-string/
+//REF: https://www.geeksforgeeks.org/convert-floating-point-number-string/
 void double_to_string(double f, char* str, int resolution) {
-	int integerPart, length, isNegative = 0;                                        //Member variables
+	int integerPart, length, isNegative = 0;
 	double floatingPart;
-	
-	integerPart = (int)f;                                           //Extract integer part
-	floatingPart = double_absolute(f - (double)integerPart);                          //Extract floating part (after decimal point)
-	length = int_to_string(integerPart, str, 0);                    //get length of integer part and convert to string
-
-	if(resolution != 0) {                                                       //If decimal places required
-			str[length] = '.';                                                      //Add decimal point
-			floatingPart = floatingPart * int_exp(10, resolution);                  //Shift floating part to be an integer
-			int_to_string(floatingPart, str + length + 1, resolution);         //Convert floating part to string, adding it to buffer
+	// extract integer and floating parts of double
+	integerPart = (int)f; 
+	floatingPart = double_absolute(f - (double)integerPart);
+	// get length of integer part and convert to string
+	length = int_to_string(integerPart, str, 0);
+	// if decimal places are required, add decimal place
+	// shift floating part to be integer with digits == resolution
+	// convert to string, adding to buffer after decimal place
+	if(resolution != 0) {
+			str[length] = '.';
+			floatingPart = floatingPart * int_exp(10, resolution);
+			int_to_string(floatingPart, str + length + 1, resolution);
 	}
 }
 
 int get_int_length(int i) {
-	int count = 1;                                                  //Int to store digit count
+	int count = 1;  // stores length
+	// get absolute value
 	i = (int)double_absolute(i);
-	while(i > 9) {                                                  //Loop through digits
-		i = i / 10;                                                 //Divide by 10
-		count++;                                                    //Increment number of digits
+	// loop through digits, dividing input by 10 and incrementing counter
+	while(i > 9) {
+		i = i / 10;
+		count++;
 	}
-	return count;                                                   //Return number of digits
+	// return number of digits
+	return count;
 }
 
-                                                                    //REF: https://stackoverflow.com/questions/29787310/does-pow-work-for-int-data-type-in-c
+//REF: https://stackoverflow.com/questions/29787310/does-pow-work-for-int-data-type-in-c
 unsigned int_exp(unsigned base, unsigned exp) {
-	unsigned result = 1;                                            //Var to store result
-
-	while(exp) {                                                    //While exp > 0
-			if(exp % 2) {                                               //If exp is odd
-					result = result * base;                                 //Result*base
-			}
-			exp = exp / 2;                                              //exp/2
-			base = base * base;                                         //base^2
+	// initialised at 1 to avoid times by 0
+	unsigned result = 1;
+	// while exp > 0
+	while(exp) {
+		// if exp is odd, result*base
+		if(exp % 2) {
+			result = result * base;
+		}
+		exp = exp / 2;
+		base = base * base;
 	}
-	return result;                                                  //Return result
+	// return result
+	return result;
 }
 
 void add_digit(double* val, int digit, int dF, int* dR) {
+	// switch whether decimal place is added
 	switch(dF) {
-		default: {																									//Not decimal
-				*val *= 10;																							//Shift 1 decimal digit left
-				*val += digit;																					//Add new digit
+		// if there is no decimal place, shift 1 decimal digit left (*10)
+		// add new digit
+		default: {
+				*val *= 10;
+				*val += digit;
 				break;
 		}
-		case 1: {																										//Decimal
-				//*val *= int_exp(10, *dR);															  //Shift float to int
-				*val += (double)digit / int_exp(10, *dR);																					//Add new digit
-				//*val /= int_exp(10, *dR);																//Convert back to float
-				*dR += 1;																								//Increment decimal place counter
+		// if there is a decimal place, digit x10^decimal resolution
+		// add new value
+		// increment decimal resolution
+		case 1: {
+				*val += (double)digit / int_exp(10, *dR);
+				*dR += 1;
 				break;
 		}
 	}
 }
 
 double double_absolute(double in) {
+	// if input is positive:
+	// 		input is multiplied by (1)
+	//		input remains positive
+	// if input is negative:
+	// 		input is multiplied by (-1)
+	//		input becomes positive
 	return in * ((in > 0) - (in < 0));
 }

@@ -3,15 +3,11 @@
 //REF: https://github.com/jspicer-code/Tiva-C-Embedded/blob/master/Experiment13-Flash/src/HAL_Flash.c
 //REF: https://www.ti.com/lit/ds/spms376e/spms376e.pdf?ts=1673398709820 (pg. 531)
 
-static unsigned int wrKey = 0;
-
-typedef union {
-	double d;
-	unsigned long l[2];
-}writeVal;
+static unsigned int wrKey = 0;  // Store WRKEY value based on BOOTCFG
 
 void flash_init(void) {
-	if(SYSCTL_BOOTCFG_R & 0x10) {  //If 'KEY' bit in BOOTCFG register is set
+	//If 'KEY' bit in BOOTCFG register is set
+	if(SYSCTL_BOOTCFG_R & 0x10) {  
 		wrKey = 0xA442;  //Set correct WRKEY
 	}
 	else {
@@ -21,36 +17,53 @@ void flash_init(void) {
 
 int flash_erase(int blockCount) {
 	int i;
-	if(wrKey == 0) {				//If WRKEY has not been set
-		return -1;																		//Exit
+	// varify wrKey is loaded before proceding
+	if(wrKey == 0) {
+		return -1;
 	}
+	// iterate through blockCount
 	for(i = 0; i < blockCount; i++) {
-		FLASH_FMA_R &= 0xFFFC0000;
+		// mask reserved bits in FMA (b31..18)
+		FLASH_FMA_R &= 0xFFFC0000;  
+		// set address to erase in FMA
 		FLASH_FMA_R |= ((unsigned long)FLASH_BASE_ADDR) + (i*1024);
-		FLASH_FMC_R = (wrKey << 16) | 0x2;
-		while(FLASH_FMC_R & 0x2) {}
+		// write WRKEY and erase bit to FMC, must be set simultaneously
+		FLASH_FMC_R = (wrKey << 16) | 0x02;
+		// poll erase flag for completion
+		while(FLASH_FMC_R & 0x02) {}
 	}
 	return 0;
 }
 
 int flash_write(const unsigned long data) {
+	// get number of blocks to erase
 	int blockCount = (((sizeof(unsigned long))/1024) + 1);
-	if(wrKey == 0) {				//If WRKEY has not been set
-		return -1;																		//Exit
+	// check WRKEY is set before proceding
+	if(wrKey == 0) {
+		return -1;
 	}
+	// blocks must be erased before being written
+	// write can only clear bits so all must be set before write
 	flash_erase(blockCount);
+	// write input data to FMD
 	FLASH_FMD_R = (data);	
+	// mask reserved bits in FMA
 	FLASH_FMA_R &= 0xFFFC0000;
+	// set flash address
 	FLASH_FMA_R |= ((unsigned long)FLASH_BASE_ADDR);
-	FLASH_FMC_R = (wrKey << 16) | 0x1;
-	while(FLASH_FMC_R & 0x1) {}
+	// write WRKEY and write bit to FMC, must be set simultaneously
+	FLASH_FMC_R = (wrKey << 16) | 0x01;
+	// poll write bit for completion
+	while(FLASH_FMC_R & 0x01) {}
 	return 0;
 }
 
 void flash_read(void* out) {
-		((unsigned long*)out)[0] = FLASH_BASE_ADDR[0];
+	// return data stored at flash base address
+	((unsigned long*)out)[0] = FLASH_BASE_ADDR[0];
 }
 
 unsigned long flash_previous(void) {
+	// previous write is stored in FMD register
 	return FLASH_FMD_R;
 }

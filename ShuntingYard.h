@@ -21,23 +21,23 @@
  * P = precedence
  * O = operation
 */
-enum OpType {                               //Enum used to set operation number and precidence
-    OPERAND = 0,                            //No operation or precedence
-    ERR = 0x00C,                            //Syntax Error
-    NAN = 0x00D,                            //Math Error
-	  OOR = 0x00E,														//Out of range
+enum OpType {     //Enum used to set operation number and precidence
+    OPERAND = 0,  //No operation or precedence
+    ERR = 0x00C,  //Syntax Error
+    NAN = 0x00D,  //Math Error
+	OOR = 0x00E,  //Out of range
     NUL = 0x00F,
-    EXP = 0x111,                            //Precedence = 1, Op = 1, right-associative
-    MUL = 0x022,                            //Precedence = 2, Op = 2, left-associative
-    DIV = 0x023,                            //Precedence = 2, Op = 3, left-associative
-    ADD = 0x034,                            //Precedence = 3, Op = 4, left-associative
-    SUB = 0x035                             //Precedence = 3, Op = 5, left-associative
-    
+    EXP = 0x111,  //Precedence = 1, Op = 1, right-associative
+    MUL = 0x022,  //Precedence = 2, Op = 2, left-associative
+    DIV = 0x023,  //Precedence = 2, Op = 3, left-associative
+    ADD = 0x034,  //Precedence = 3, Op = 4, left-associative
+    SUB = 0x035   //Precedence = 3, Op = 5, left-associative
 };
 
 /**
  * Token: holds operand and value
- * struct used instead of union to enable distiction between operand and operation
+ * struct used instead of union to enable distiction between 
+ * operand and operation
 */
 typedef struct Token {
     int op;
@@ -61,7 +61,8 @@ typedef struct Stack {
 Token shunting_yard(char inputArray[]);
 
 /**
- * tokenise: converts user input char array into number/operation tokens to be used in calculation
+ * tokenise: converts user input char array into number/operation 
+ * tokens to be used in calculation
  * t = pointer to stack to write tokens
  * i[] = user input
 */
@@ -101,12 +102,6 @@ void stack_push(Stack* s, Token t);
 void stack_init(Stack* s);
 
 /**
- * print_stack: print each token of stack on a line
- * DEBUG ONLY
-*/
-
-
-/**
  * get_precedence: returns precedence of given operation
  * op = operation
 */
@@ -118,4 +113,4 @@ int get_precedence(int op);
 */
 int get_associativity(int op);
 
-#endif //SHUNTINGYARD_H
+#endif  // SHUNTINGYARD_H

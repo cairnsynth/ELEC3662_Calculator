@@ -3,71 +3,75 @@
 #include "LCD.h"
 
 Token shunting_yard(char inputArray[]) {
-		debug_mess("BEGIN");
-    Stack tokenStack;                                   //stacks used in each stage of conversion/calculation
+	debug_mess("BEGIN");
+    // stacks used in each stage of conversion/calculation
+    Stack tokenStack;    
     Stack outputStack;
     Stack operatorStack;
     Stack resultStack;
-    int errorFlag = 0;                                  //int to hold error flags output by functions
-		debug_mess("T");
-    errorFlag = tokenise(&tokenStack, inputArray);      //tokenise user input
-	debug_mess("S");
-    shunt(&tokenStack, &operatorStack, &outputStack);   //convert to postfix
-	debug_mess("R");
-    errorFlag |= result(&outputStack, &resultStack);    //calculate result
-    resultStack.stack[0].op = errorFlag;                //encode error flag
-	debug_mess("RETURN");
-    return resultStack.stack[0];                        //return result
+    // int to hold error flags output by functions
+    int errorFlag = 0;  
+    errorFlag = tokenise(&tokenStack, inputArray);  // tokenise user input
+    shunt(&tokenStack, &operatorStack, &outputStack);  // convert to postfix
+    errorFlag |= result(&outputStack, &resultStack);  // calculate result
+    resultStack.stack[0].op = errorFlag;  // encode error flag
+    return resultStack.stack[0];  // return result
 }
 
 int tokenise(Stack* t, char i[]) {
-	
-    int count = 0, decimalFlag = 0, decimalPlace = 1, valueFlag = 0;                        //Variables
+    // variables
+    int count = 0, decimalFlag = 0, decimalPlace = 1, valueFlag = 0;
     double tempVal = 0.0;
     Token tempToken = {-1, 0.0};
-
-    stack_init(t);                                                                      //Initialise token stack
+    // initialise token stack
+    stack_init(t);
+    // loop through input string until end reached
     while(i[count] != '\0') {
-        if(i[count] <= 0x39 && i[count] >= 0x30) {                                      //If char is numeric
-            add_digit(&tempVal, i[count] - '0', decimalFlag, &decimalPlace);            //Add digit to temp value
-            valueFlag = 1;                                                              //Set value flag
+        // if char is numeric add digit to temporary value and set flag
+        if(i[count] <= 0x39 && i[count] >= 0x30) {
+            add_digit(&tempVal, i[count] - '0', decimalFlag, &decimalPlace);
+            valueFlag = 1;
         }
-        else if(i[count] == '.') {                                                      //If char is decimal place
-            decimalFlag = 1;                                                            //Set decimal flag
+        // if char is . set decimal flag, 
+        // digits will be added after decimal place
+        else if(i[count] == '.') {
+            decimalFlag = 1;
         }
-        else {                                                                          //If char is operand
-					debug_mess("OPERATION");
-            tempToken.op = OPERAND;                                                     //Store operand and value in temp token
+        // if char is operation
+        else {
+            // store temporary value to token with OPERAND OpCode
+            tempToken.op = OPERAND;
             tempToken.value = tempVal;
-            if(count > 2 && (t->stack[t->stackCnt-1].op > 0 && t->stack[t->stackCnt-2].op > 0)) {                       //Double operator handling
-              debug_mess("DBL OP");  
-							int tmpOp = t->stack[t->stackCnt-1].op;                                 //Store 2nd operation before pop
-                stack_pop(t);                                                           //Pop
-                switch(tmpOp) {                                                         //Switch based on 2nd operation
+            // if 2 operations are in series in the array
+            if(count > 2 && (t->stack[t->stackCnt-1].op > 0 
+            && t->stack[t->stackCnt-2].op > 0)) {
+                // store 2nd operation and pop from stack
+				int tmpOp = t->stack[t->stackCnt-1].op;
+                stack_pop(t);
+                // switch based on 2nd operation
+                switch(tmpOp) {
+                    // 'bake' negative into subsequent value ('-','1' = '-1')
                     case SUB: {                                   
-												debug_mess("NEG DBL");;
-                        tempToken.value = tempVal * -1.0;																//'Bake' negative into value, i.e (1  *  -  2) = (1  *  -2)
+                        tempToken.value = tempVal * -1.0;
                         break;	
                     }
-                    case ADD: {                                                         //Double addition has no impact
-											debug_mess("ADD DBL");
-                        break;
-                    }
-                    default: {                                                          //Anything else, return SYNTAX ERROR
-											debug_mess("OTH DBL");
-                        return ERR;
-                    }
+                    // double addition has no effect
+                    case ADD: {break;}
+                    // return syntax error for anything else
+                    default: {return ERR;}
                 }
             }
+            // push new value to token stack if it is a valid value 
             if(valueFlag) {
-                stack_push(t, tempToken);               //Push temp token to token stack
+                stack_push(t, tempToken);
             }
-            valueFlag = 0;                              //Reset flags for next token
+            // reset flags
+            valueFlag = 0;
             tempVal = 0.0;
             decimalFlag = 0;
             decimalPlace = 1;
-
-            int opType = 0;                             //Push operation as token
+            // push operation as token with correct OpCode
+            int opType = 0;
             switch (i[count])
             {
             case '+':
@@ -99,10 +103,12 @@ int tokenise(Stack* t, char i[]) {
             stack_push(t, tempToken);
         
         }
-        count++;                                            //Iterate through char array
+        // iterate through char array
+        count++;
     } 
-
-    if(count > 2 && (t->stack[t->stackCnt-1].op > 0 && t->stack[t->stackCnt-2].op > 0)) {                       //Error handling for final operation
+    // error handling for final operation (see ln46-62)
+    if(count > 2 && (t->stack[t->stackCnt-1].op > 0 
+    && t->stack[t->stackCnt-2].op > 0)) {
         int tmpOp = t->stack[t->stackCnt-1].op;
         stack_pop(t);
         switch(tmpOp) {
@@ -118,88 +124,101 @@ int tokenise(Stack* t, char i[]) {
             }
         }
     }
-
-    tempToken.value = tempVal;                              //Push final operand
+    // push final operand
+    tempToken.value = tempVal;
     tempToken.op = OPERAND;
     stack_push(t, tempToken);
-    
-    count = 0;                                              //Exponent handling
+    // exponent handling
+    count = 0;
     while(count < 50) {
-        if((t->stack[count].op == 0) && (t->stack[count+1].op == EXP) && (t->stack[count+2].op == 0)) {     //if (value - exp - value)
-            if(t->stack[count+2].value == (int)t->stack[count+2].value) {                                   //if exponent is an integer
-                t->stack[count].value = t->stack[count].value * int_exp(10, (int)t->stack[count+2].value);  //Calculate exponent and store
-                t->stack[count+1].op = NUL;                                                                 //Empty other values
+        // if (value , exp , value) exists in stack
+        if((t->stack[count].op == 0) && (t->stack[count+1].op == EXP) && (t->stack[count+2].op == 0)) {
+            // if exponent is an integer
+            if(t->stack[count+2].value == (int)t->stack[count+2].value) {
+                // calculate exponent and empty other values
+                t->stack[count].value = t->stack[count].value * int_exp(10, (int)t->stack[count+2].value);
+                t->stack[count+1].op = NUL;
                 t->stack[count+2].op = NUL;
             }
+            // return syntax error if exponent is not integer
             else {
                 return ERR;
             }
         }
         count++;
     }
+    // return 0 if no errors occur
     return 0;
 }
 
 void shunt(Stack* tokenS, Stack* opS, Stack* outS) {
-    int c = 0;
-		
-//		debug_mess("SHUNTING");
-    stack_init(opS);                                            //Initialise stacks
+    int c = 0;  // loop iterator
+	// initialise stacks
+    stack_init(opS);
     stack_init(outS);
-
-    while(tokenS->stack[c].op != -1) {                          //While end of stack not reached
-        if(tokenS->stack[c].op != NUL) {                        //If token is not empty
-            switch(tokenS->stack[c].op) {                       //switch whether token is operand or operation
+    // iterate through token stack
+    while(tokenS->stack[c].op != -1) {
+        // check current token is not empty
+        if(tokenS->stack[c].op != NUL) {
+            // switch based on token OpCode
+            switch(tokenS->stack[c].op) {
+                // if is operand push to output stack
                 case OPERAND: {
-                    stack_push(outS, tokenS->stack[c]);         //push to output stack
-//										debug_mess("OPERAND");
+                    stack_push(outS, tokenS->stack[c]);
                     break;
                 }
+                // if is operation
                 default: {
-//										debug_mess("OPERATION");
+                    // push to output stack if right associative
                     if(get_associativity(tokenS->stack[c].op)) {
-//											debug_mess("RIGHT ASS");
-                        stack_push(outS, tokenS->stack[c]);     //Push to output stack if right associative (EXP)
+                        stack_push(outS, tokenS->stack[c]);
                     }
-                    else {  
-//												debug_mess("LEFT ASS");											
-                        while(opS->stackCnt > 0 && (get_precedence(opS->stack[opS->stackCnt-1].op) <= get_precedence(tokenS->stack[c].op))){     //While head of op stack is higher (lower) precedence, push to output then pop
-//													debug_mess("POP");
+                    // if left associative:
+                    // while operator at top of operator stack has greater
+                    // precedence:
+                    //     pop operator from operator stack onto output stack
+                    // push operator from token stack onto operator stack
+                    else {  										
+                        while(opS->stackCnt > 0 && 
+                        (get_precedence(opS->stack[opS->stackCnt-1].op) 
+                        <= get_precedence(tokenS->stack[c].op))){
                             stack_push(outS, opS->stack[opS->stackCnt-1]);
                             stack_pop(opS);
                         }
-//												debug_mess("PUSH");
-                        stack_push(opS, tokenS->stack[c]);      //Push op to op stack
+                        stack_push(opS, tokenS->stack[c]);
                     }
                     break;
                 }
             }   
 
         }
+        // iterate
         c++;
     }
-//		debug_mess("SHUNTED");
-
-    while(opS->stackCnt > 0) {                                  //While operations remain in op stack
-        stack_push(outS, opS->stack[opS->stackCnt-1]);          //push to output
-        stack_pop(opS);                                         //Clear op stack
+    // while operations remain in op stack push to output stack
+    while(opS->stackCnt > 0) {
+        stack_push(outS, opS->stack[opS->stackCnt-1]);
+        stack_pop(opS);
     }
 }
 
 int result(Stack* outS, Stack* resS) {
-//		debug_mess("CALCULATING");
-    int c = 0;
-
+    int c = 0;  // loop iterator
+    // initialise result stack
     stack_init(resS);
-
+    // iterate through output stack
     while(outS->stack[c].op != -1) {
-
+        // if token is not empty
         if(outS->stack[c].op != NUL) {
+            // temp tokens for calculation
             Token tmpA, tmpB, tmpR;
+            // push operands to result stack
             if(outS->stack[c].op == 0) {
                 stack_push(resS, outS->stack[c]);
             }
-    
+            // if operation: pop top 2 operands from result stack and
+            // perform operation on these numbers
+            // push result back onto result stack
             else {
                 tmpA = resS->stack[resS->stackCnt-1];
                 stack_pop(resS);
@@ -216,6 +235,7 @@ int result(Stack* outS, Stack* resS) {
                         break;
                     }
                     case DIV: {
+                        // return math error if divide by 0
                         if(tmpA.value == 0.0) {
                             return NAN;
                         }
@@ -238,14 +258,16 @@ int result(Stack* outS, Stack* resS) {
                 }
                 stack_push(resS, tmpR);
             }
+            // iterate
             c++;
         }
     }
-//		debug_mess("CALCULATED");
+    // return 0 if no errors generated
     return 0;
 }
 
 void stack_pop(Stack* s) {
+    // if there are items in the stack, empty top item and decrement count
     if(s->stackCnt > 0) {
         s->stack[s->stackCnt].op = -1;
         s->stackCnt--;
@@ -253,6 +275,7 @@ void stack_pop(Stack* s) {
 }
 
 void stack_push(Stack* s, Token t) {
+    // if there is space in the stack, add t to the top and increment count
     if(s->stackCnt < sizeof(s->stack)/sizeof(Token)) {
         s->stack[s->stackCnt] = t;
         s->stackCnt++;
@@ -260,19 +283,24 @@ void stack_push(Stack* s, Token t) {
 }
 
 void stack_init(Stack* s) {
-    int i;
+    int i;  // loop iterator
+    // go to end of stack
     s->stackCnt = sizeof(s->stack)/sizeof(s->stack[0]);
+    // empty each token
     for(i = 0; i < sizeof(s->stack)/sizeof(s->stack[0]); i++) {
         s->stack[i].op = -1;
         s->stack[i].value = 0.0;
     }
+    // reset count to 0
     s->stackCnt = 0;
 }
 
 int get_precedence(int op) {
-    return ((op & 0xF0) >> 4);
+    // decode precedence bits from OpCode bitfield
+    return ((op & 0x0F0) >> 4);
 }
 
 int get_associativity(int op) {
+    // decode associativity bits from OpCode bitfield
     return ((op & 0xF00) >> 8);
 }

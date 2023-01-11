@@ -1,56 +1,58 @@
+// Library/driver inclusions
 #include "KeyPad.h"
 #include "LCD.h"
 #include "PLL.h"
 #include "Utility.h"
 #include "ShuntingYard.h"
 #include "Flash.h"
-
+// Constant definitions
 #define SCREEN_WIDTH 16
 #define OUTPUT_BUFFER_SIZE 16
 #define INPUT_BUFFER_SIZE 100
-#define MAX_INPUT_VALUES INPUT_BUFFER_SIZE/2
-
+//Function declarations
 char get_input(void);
 void clear_calculator(void);
 void display(void);
 void calculate(char str[]);
 int enter_pw(void);
 int update_pw(void);
+// Variable definitions
+char input;             // stores most recent input
+char inputBuffer[100];  // stores all input until calculation
+int inputIndex = 0;     // tracks inputBuffer position
+char outputBuffer[16];  // chars for output display
 
-char input;
-char inputBuffer[100];
-int inputIndex = 0;
-char outputBuffer[50];
+char prevInput;         // stores previous input
+unsigned int shiftFlag = 0;  // tracks shift status
 
-char prevInput;
-unsigned int shiftFlag = 0;
-Token res = {0.0, -1};
-Stack tokenStack;
-Stack operatorStack;
-Stack outputStack;
-Stack resultStack;
-int errFlag = 0;
+Token res = {0.0, -1};  // stores calculation result
+Stack tokenStack;       // stack of tokens for calculation
+Stack operatorStack;    // stack of operations for calculation
+Stack outputStack;      // stack of postfix sorted tokens
+Stack resultStack;      // stack used in calculation
 
-unsigned long flashAddr = 0;
-unsigned long flashTest = 0x31323334;
-double flashDouble = 0;
-unsigned long flashOut;
-int flashInt = 0;
+int errFlag = 0;        // syntax/math error tracking flag
+char mathErr[] = "MATH_ERR";
+char syntaxErr[] = "SYNTAX_ERR";
 
 int main(void) {
-	pll_init();																//pll must be initialised first as it is used in LCD initialisation
-	lcd_init();																//lcd initialisation
-	keypad_init();														//keypad initialisation
-	flash_init();
+	// Initialise peripherals
+	pll_init();  // pll must be initialised first
+	lcd_init();  // lcd initialisation
+	keypad_init();  // keypad initialisation
+	flash_init();  // flash initialisation
 	
-	//flash_write(flashTest);
-	lcd_splash_animation();
+	lcd_splash_animation();  // show splash screen
+	// call enter_pw while password is incorrect
 	while(!enter_pw()) {pll_delay_ms(500);};
 	pll_delay_ms(500);
 	lcd_clear();
+	// main program loop
 	while(1) {
+		// get user input
 		input = get_input();
-		switch(input) {
+		// perform actions based on returned char
+		switch(input) {  
 			case EQUALS: {
 				calculate(inputBuffer);
 				break;
@@ -69,31 +71,40 @@ int main(void) {
 				clear_calculator();
 				break;
 			}
+			// insert char into buffer then increment index if integer
 			default: {
 				inputBuffer[inputIndex] = input;
 				inputIndex++;
 			}
 		}
-		display();
+		// update display of inputBuffer
+		display();  
 		pll_delay_ms(10);
 	};
 	
 }
-
+/**
+ * Get filtered input based on previous input, shift state
+*/
 char get_input(void) {
-	char out = 'X';
-	shiftFlag = 0;
+	char out = 'X';  //'no entry' symbol
+	shiftFlag = 0;  // reset flags
 	prevInput = 0;
+	// loop until different input is received
+	// read keypad each loop
+	// if statement checks for a new keypress
 	while(1) {
 		char i = keypad_read();
 		if(i != prevInput && i != 'X' && inputIndex < INPUT_BUFFER_SIZE) {
-			prevInput = i;
-			
+			// update old input
+			prevInput = i;  
+			// toggle shift flag if shift pressed
 			if(i == SHIFT) {
-				shiftFlag = !shiftFlag;
+				shiftFlag = !shiftFlag;  // toggle shift flag
 			}
 			else {
-				switch(i) {
+				// set output based on input + shift flag
+				switch(i) {  
 					case PLUS: {
 						switch(shiftFlag) {
 							case 1: out = TIMES;
@@ -143,82 +154,85 @@ char get_input(void) {
 						}
 						break;
 					}
-					default: {
+					// default for inputs 0-9, return integer
+					default: {  
 						out = i;
 						break;
 					}
 				}
 			}
 		}
-		else if (i == 'X' && out != 'X') {
+		//return once key is released
+		else if (i == 'X' && out != 'X') {  
 			return out;
 		}
 	}
 }
-
+/**
+ * Clear I/O buffers and display
+*/
 void clear_calculator(void) {
-	int count;
-	for(count = 0; count < INPUT_BUFFER_SIZE; count++) {
-		inputBuffer[count] = ' ';
+	int i;  // loop iterator
+	// loop through input buffer, clearing characters
+	for(i = 0; i < INPUT_BUFFER_SIZE; i++) {
+		inputBuffer[i] = ' ';
 	}
-	for(count = 0; count < OUTPUT_BUFFER_SIZE; count++) {
-		outputBuffer[count] = ' ';
+	// loop through output buffer, clearing characters
+	for(i = 0; i < OUTPUT_BUFFER_SIZE; i++) {
+		outputBuffer[i] = ' ';
 	}
+	// reset input index
 	inputIndex = 0;
+	// update display (clears display)
 	display();
 }
-
+/**
+ * Update LCD display with I/O buffer contents
+*/
 void display(void) {
-	int count = 0;
+	int i = 0;  // loop iterator
 	lcd_clear();
-	lcd_goto(0, 0);
+	// if user input wont fit on screen
 	if(inputIndex>SCREEN_WIDTH) {
-		for(count = inputIndex-SCREEN_WIDTH; count < inputIndex; count++) {
-			lcd_print_char(inputBuffer[count]);
+		// print last 16 characters of buffer
+		for(i = inputIndex-SCREEN_WIDTH; i < inputIndex; i++) {
+			lcd_print_char(inputBuffer[i]);
 		}
+	// if user input fits on screen
 	} else {
-		for(count = 0; count < inputIndex; count++) {
-			lcd_print_char(inputBuffer[count]);
+		// print input
+		for(i = 0; i < inputIndex; i++) {
+			lcd_print_char(inputBuffer[i]);
 		}
 	}
+	// print output buffer on line 2 of LCD
 	lcd_goto(1,0);
 	lcd_print_string(outputBuffer);
 }
-
+/**
+ * Convert input string to postfix notation using shunting yard algorithm
+ * Perform calculation on equation
+*/
 void calculate(char str[]) {
 	lcd_clear();
+	// add null terminator to end of input buffer
 	inputBuffer[inputIndex] = '\0';
+	// tokenise input buffer, storing any syntax errors
 	errFlag = tokenise(&tokenStack, str);
+	// sort into postfix notation
 	shunt(&tokenStack, &operatorStack, &outputStack);
+	// calculate result, storing any math errors
 	errFlag |= result(&outputStack, &resultStack);
-	
 	lcd_clear();
+	// display error message or result based on error flag
 	lcd_goto(1,0);
 	switch(errFlag) {
 		case ERR: {
-			outputBuffer[0] = 'S';
-			outputBuffer[1] = 'Y';
-			outputBuffer[2] = 'N';
-			outputBuffer[3] = 'T';
-			outputBuffer[4] = 'A';
-			outputBuffer[5] = 'X';
-			outputBuffer[6] = '_';
-			outputBuffer[7] = 'E';
-			outputBuffer[8] = 'R';
-			outputBuffer[9] = 'R';
-			outputBuffer[10] = '\0';
+			copy_string(outputBuffer, syntaxErr);
 			break;
 		}
 		case NAN: {
-			outputBuffer[0] = 'M';
-			outputBuffer[1] = 'A';
-			outputBuffer[2] = 'T';
-			outputBuffer[3] = 'H';
-			outputBuffer[4] = '_';
-			outputBuffer[5] = 'E';
-			outputBuffer[6] = 'R';
-			outputBuffer[7] = 'R';
-			outputBuffer[8] = '\0';
+			copy_string(outputBuffer, mathErr);
 			break;
 		}
 		default: {
@@ -228,21 +242,27 @@ void calculate(char str[]) {
 		}
 	}
 }
-
+/**
+ * Read saved password from flash memory and compare to user input
+*/
 int enter_pw(void) {
-	int c;
-	unsigned long entry = 0x00;
-	unsigned long pw;
-	flash_read(&pw);
+	int i;  // loop iterator
+	unsigned long entry = 0x00;  // user input
+	unsigned long pw;  // saved password
+	// get saved password from flash memory
+	flash_read(&pw);  
+	// display prompt on screen
 	lcd_clear();
 	lcd_print_string("ENTER PW:");
 	lcd_goto(1,0);
 	lcd_print_char(6);
-	for(c = 0; c < 4; c++) {
+	//get 4 character input from user and store in unsigned long
+	for(i = 0; i < 4; i++) {
 		entry = (entry << 8) + get_input();
 		lcd_print_char('*');
 	}
-		lcd_goto(1,1);
+	lcd_goto(1,1);
+	// return true if passwords match, false if not
 	if(entry == pw) {
 		lcd_print_string("UNLOCKED");
 		return 1;
@@ -252,10 +272,13 @@ int enter_pw(void) {
 		return 0;
 	}
 }
-
+/**
+ * Get user input for new password and write to flash memory
+*/
 int update_pw(void) {
-	int c;
-	unsigned long newPW = 0x00;
+	int i;  // loop iterator
+	unsigned long newPW = 0x00;  // long to store new pasword
+	// display prompt
 	lcd_clear();
 	lcd_print_char(6);
 	lcd_print_string("    UPDATE    ");
@@ -265,19 +288,23 @@ int update_pw(void) {
 	lcd_print_string("   PASSWORD   ");
 	lcd_print_char(6);
 	pll_delay_ms(1000);
+	// enter current password correctly to update
 	while(!enter_pw()) {pll_delay_ms(500);}
 	pll_delay_ms(500);
+	// display prompt
 	lcd_clear();
 	lcd_print_string("ENTER NEW PW");
 	lcd_goto(1,0);
 	lcd_print_char(6);
-	for(c = 0; c < 4; c++) {
+	// get 4 character input to set as new password
+	for(i = 0; i < 4; i++) {
 		newPW = (newPW << 8) + get_input();
 		lcd_print_char('*');
 	}
+	// return true if flash is written properly
 	lcd_goto(1,1);
 	lcd_print_string("UPDATED");
 	pll_delay_ms(500);
-	c = flash_write(newPW);
-	return c + 1;
+	i = flash_write(newPW);
+	return i + 1;
 }

@@ -59,6 +59,3 @@ The Shunting Yard function takes a char array as input, so could be repurposed f
 |6|PE1|
 |7|PE2|
 |8|PE3|
-
-## Demonstration Video
-

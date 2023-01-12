@@ -304,7 +304,7 @@ int update_pw(void) {
 	// return true if flash is written properly
 	lcd_goto(1,1);
 	lcd_print_string("UPDATED");
-	pll_delay_ms(500);
 	i = flash_write(newPW);
+	pll_delay_ms(500);
 	return i + 1;
 }

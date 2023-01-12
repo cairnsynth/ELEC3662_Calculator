@@ -27,7 +27,7 @@ void lcd_init(void) {
 	GPIO_PORTB_DEN_R   |= 0xFF;  // enable digital I/O on PB3-0
 	// LCD initialisation
 	// non-specific delays ensure instruction has finished executing
-	pll_delay_ms(50);         // wait >40ms after Vcc rises above 4.5V
+	pll_delay_ms(100);         // wait >40ms after Vcc rises above 4.5V
 	lcd_write_command(0x03);  // "Function set" instruction
 	pll_delay_ms(5);          // wait >4.1ms (specified in datasheet)
 	lcd_write_command(0x03);  // "Function set" x2
@@ -164,6 +164,7 @@ void lcd_custom_character(unsigned char* character, char location) {
 
 void lcd_splash_animation(void) {
 	int i, character;
+	
 	lcd_clear();
 	pll_delay_ms(50);
 	for(character = 2; character >= 0; character--) {
@@ -212,8 +213,11 @@ void lcd_splash_animation(void) {
 			lcd_print_char(' ');
 			pll_delay_ms(10);
 	}
+	
 	pll_delay_ms(200);
 	lcd_print_string("ELEC3662 Calc!");
 	pll_delay_ms(1000);
 	lcd_clear();
+	
+	
 }

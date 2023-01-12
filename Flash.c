@@ -15,7 +15,7 @@ void flash_init(void) {
 int flash_erase(int blockCount) {
 	int i;
 	// varify wrKey is loaded before proceding
-	if(wrKey != 0xA442 || wrKey != 0x71D5) {
+	if(wrKey == 0) {
 		return -1;
 	}
 	// iterate through blockCount
@@ -36,12 +36,12 @@ int flash_write(const unsigned long data) {
 	// get number of blocks to erase
 	int blockCount = (((sizeof(unsigned long))/1024) + 1);
 	// check WRKEY is set before proceding
-	if(wrKey != 0xA442 || wrKey != 0x71D5) {
+	if(wrKey == 0) {
 		return -1;
 	}
 	// blocks must be erased before being written
 	// write can only clear bits so all must be set before write
-	flash_erase(blockCount);
+	flash_erase(1);
 	// write input data to FMD
 	FLASH_FMD_R = (data);	
 	// mask reserved bits in FMA

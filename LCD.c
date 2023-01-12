@@ -3,34 +3,31 @@
 // pixel data for custom characters
 unsigned char customDivide[8] = {0x00,0x04,0x00,0x1f,0x00,0x04,0x00,0x00};
 unsigned char dith1[8]        = {0x1f,0x1f,0x1f,0x1f,0x1f,0x1f,0x1f,0x1f};
-unsigned char dith2[8]  	  = {0x0a,0x17,0x0a,0x1d,0x0a,0x17,0x0a,0x1d};
-unsigned char dith3[8]  	  = {0x15,0x08,0x15,0x02,0x15,0x08,0x15,0x0a};
-unsigned char snake1[8] 	  = {0x00,0x0e,0x15,0x01,0x0f,0x12,0x00,0x00};
-unsigned char snake2[8] 	  = {0x00,0x00,0x1f,0x0a,0x00,0x1f,0x00,0x00};
-unsigned char snake3[8] 	  = {0x00,0x00,0x07,0x0a,0x10,0x1f,0x00,0x00};
-unsigned char lock[8]   	  = {0x04,0x0A,0x0A,0x1F,0x1B,0x1B,0x1F,0x00};
+unsigned char dith2[8]        = {0x0a,0x17,0x0a,0x1d,0x0a,0x17,0x0a,0x1d};
+unsigned char dith3[8]        = {0x15,0x08,0x15,0x02,0x15,0x08,0x15,0x0a};
+unsigned char lock[8]         = {0x04,0x0A,0x0A,0x1F,0x1B,0x1B,0x1F,0x00};
 
 void lcd_init(void) {
 	volatile unsigned long delay;
 	SYSCTL_RCG2_R |= 0x03;  // clock enable for Port A and B
 	delay = SYSCTL_RCG2_R;  // wait for clock
 	// port initialisation
-	GPIO_PORTA_AMSEL_R &= 0x00;	 // disable analog function
+	GPIO_PORTA_AMSEL_R &= 0x00;  // disable analog function
 	GPIO_PORTA_PCTL_R  &= 0x00000000;  // PCTL GPIO on Port A
-	GPIO_PORTA_DIR_R   |= 0xFF;	 // set PA3-2 to output
-	GPIO_PORTA_AFSEL_R &= 0x00;	 // disable Port A alt function
-	GPIO_PORTA_PUR_R   &= 0x00;	 // disable pull-up resistors
-	GPIO_PORTA_DEN_R   |= 0xFF;	 // enable digital I/O on PA3-2
+	GPIO_PORTA_DIR_R   |= 0xFF;  // set PA3-2 to output
+	GPIO_PORTA_AFSEL_R &= 0x00;  // disable Port A alt function
+	GPIO_PORTA_PUR_R   &= 0x00;  // disable pull-up resistors
+	GPIO_PORTA_DEN_R   |= 0xFF;  // enable digital I/O on PA3-2
 	
-	GPIO_PORTB_AMSEL_R &= 0x00;	 // disable analog function
+	GPIO_PORTB_AMSEL_R &= 0x00;  // disable analog function
 	GPIO_PORTB_PCTL_R  &= 0x00000000;  // PCTL GPIO on Port B
-	GPIO_PORTB_DIR_R   |= 0xFF;	 // set PB3-0 to output
-	GPIO_PORTB_AFSEL_R &= 0x00;	 // disable Port B alt function
-	GPIO_PORTB_PUR_R   &= 0x00;	 // disable pull-up resistors
-	GPIO_PORTB_DEN_R   |= 0xFF;	 // enable digital I/O on PB3-0
+	GPIO_PORTB_DIR_R   |= 0xFF;  // set PB3-0 to output
+	GPIO_PORTB_AFSEL_R &= 0x00;  // disable Port B alt function
+	GPIO_PORTB_PUR_R   &= 0x00;  // disable pull-up resistors
+	GPIO_PORTB_DEN_R   |= 0xFF;  // enable digital I/O on PB3-0
 	// LCD initialisation
 	// non-specific delays ensure instruction has finished executing
-	pll_delay_ms(100);        // wait >40ms after Vcc rises above 4.5V
+	pll_delay_ms(50);         // wait >40ms after Vcc rises above 4.5V
 	lcd_write_command(0x03);  // "Function set" instruction
 	pll_delay_ms(5);          // wait >4.1ms (specified in datasheet)
 	lcd_write_command(0x03);  // "Function set" x2
@@ -43,7 +40,7 @@ void lcd_init(void) {
 	lcd_write_command(0x08);
 	pll_delay_us(100);
 	lcd_write_command(0x00);  // display on/off
-	lcd_write_command(0x80);
+	lcd_write_command(0x08);
 	pll_delay_us(100);
 	lcd_write_command(0x00);  // display clear
 	lcd_write_command(0x01);
@@ -60,13 +57,10 @@ void lcd_init(void) {
 	lcd_custom_character(dith1, 0);
 	lcd_custom_character(dith2, 1);
 	lcd_custom_character(dith3, 2);
-	lcd_custom_character(snake1, 3);
-	lcd_custom_character(snake2, 4);
-	lcd_custom_character(snake3, 5);
 	lcd_custom_character(lock, 6);
 }
 
-void lcd_en_pulse(void) {	
+void lcd_load(void) {	
 	// quickly pulse enable pin to load data into LCD					
 	EN = 0x04;
 	pll_delay_ms(1);
@@ -77,9 +71,9 @@ void lcd_en_pulse(void) {
 void lcd_write_command(unsigned char c) {
 	// select command register
 	RS = 0x00;
-	// output command to data pins, mask bits
+	// output command to data pins, b3..0
 	DATA = c & 0x0F;
-	lcd_en_pulse();
+	lcd_load();
 }
 
 void lcd_write_data(char c) {
@@ -87,7 +81,7 @@ void lcd_write_data(char c) {
 	RS = 0x08;
 	// output data to data pins, mask unused bits
 	DATA = c & 0x0F;
-	lcd_en_pulse();
+	lcd_load();
 }
 
 void lcd_clear(void) {
@@ -104,7 +98,7 @@ void lcd_print_char(char c) {
 	lcd_write_data(c);
 }
 
-void lcd_print_char_literal(char c) {
+void lcd_print_char_value(char c) {
 	int i = 0;  // loop iterator
 	// print '0b' prefix
 	lcd_print_char('0');
@@ -218,125 +212,8 @@ void lcd_splash_animation(void) {
 			lcd_print_char(' ');
 			pll_delay_ms(10);
 	}
-	lcd_goto(0,0);
-	lcd_print_char(3);
-	pll_delay_ms(100);
-	lcd_clear();
-	lcd_print_char(4);
-	lcd_print_char(3);
-	pll_delay_ms(100);
-	lcd_clear();
-	lcd_print_char(4);
-	lcd_print_char(4);
-	lcd_print_char(3);
-	pll_delay_ms(100);
-	lcd_clear();
-	lcd_print_char(5);
-	lcd_print_char(4);
-	lcd_print_char(4);
-	lcd_print_char(3);
-	pll_delay_ms(100);
-	lcd_clear();
-	lcd_print_char('2');
-	lcd_print_char(5);
-	lcd_print_char(4);
-	lcd_print_char(4);
-	lcd_print_char(3);
-	pll_delay_ms(100);
-	lcd_clear();
-	lcd_print_string("62");
-	lcd_print_char(5);
-	lcd_print_char(4);
-	lcd_print_char(4);
-	lcd_print_char(3);
-	pll_delay_ms(100);
-	lcd_clear();
-	lcd_print_string("662");
-	lcd_print_char(5);
-	lcd_print_char(4);
-	lcd_print_char(4);
-	lcd_print_char(3);
-	pll_delay_ms(100);
-	lcd_clear();
-	lcd_print_string("3662");
-	lcd_print_char(5);
-	lcd_print_char(4);
-	lcd_print_char(4);
-	lcd_print_char(3);
-	pll_delay_ms(100);
-	lcd_clear();
-	lcd_print_string("C3662");
-	lcd_print_char(5);
-	lcd_print_char(4);
-	lcd_print_char(4);
-	lcd_print_char(3);
-	pll_delay_ms(100);
-	lcd_clear();
-	lcd_print_string("EC3662");
-	lcd_print_char(5);
-	lcd_print_char(4);
-	lcd_print_char(4);
-	lcd_print_char(3);
-	pll_delay_ms(100);
-	lcd_clear();
-	lcd_print_string("LEC3662");
-	lcd_print_char(5);
-	lcd_print_char(4);
-	lcd_print_char(4);
-	lcd_print_char(3);
-	pll_delay_ms(100);
-	lcd_clear();
-	lcd_print_string("ELEC3662");
-	lcd_print_char(5);
-	lcd_print_char(4);
-	lcd_print_char(4);
-	lcd_print_char(3);
-	pll_delay_ms(100);
-	lcd_clear();
-	lcd_print_string("ELEC3662 ");
-	lcd_print_char(5);
-	lcd_print_char(4);
-	lcd_print_char(4);
-	lcd_print_char(3);
-	pll_delay_ms(100);
-	lcd_clear();
-	lcd_print_string("ELEC3662  ");
-	lcd_print_char(5);
-	lcd_print_char(4);
-	lcd_print_char(4);
-	lcd_print_char(3);
-	pll_delay_ms(100);
-	lcd_clear();
-	lcd_print_string("ELEC3662   ");
-	lcd_print_char(5);
-	lcd_print_char(4);
-	lcd_print_char(4);
-	lcd_print_char(3);
-	pll_delay_ms(100);
-	lcd_clear();
-	lcd_print_string("ELEC3662    ");
-	lcd_print_char(5);
-	lcd_print_char(4);
-	lcd_print_char(4);
-	lcd_print_char(3);
-	pll_delay_ms(100);
-	lcd_clear();
-	lcd_print_string("ELEC3662    ");
-	lcd_print_char(5);
-	lcd_print_char(4);
-	lcd_print_char(4);
-	pll_delay_ms(100);
-	lcd_clear();
-	lcd_print_string("ELEC3662    ");
-	lcd_print_char(5);
-	lcd_print_char(4);
-	pll_delay_ms(100);
-	lcd_clear();
-	lcd_print_string("ELEC3662    ");
-	lcd_print_char(5);
-	pll_delay_ms(100);
-	lcd_clear();
-	lcd_print_string("ELEC3662    ");
+	pll_delay_ms(200);
+	lcd_print_string("ELEC3662 Calc!");
 	pll_delay_ms(1000);
 	lcd_clear();
 }

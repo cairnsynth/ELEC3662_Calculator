@@ -1,9 +1,6 @@
 #include "Flash.h"
-
-//REF: https://github.com/jspicer-code/Tiva-C-Embedded/blob/master/Experiment13-Flash/src/HAL_Flash.c
-//REF: https://www.ti.com/lit/ds/spms376e/spms376e.pdf?ts=1673398709820 (pg. 531)
-
-static unsigned int wrKey = 0;  // Store WRKEY value based on BOOTCFG
+// store WRKEY value based on BOOTCFG
+static unsigned int wrKey = 0;
 
 void flash_init(void) {
 	//If 'KEY' bit in BOOTCFG register is set
@@ -18,7 +15,7 @@ void flash_init(void) {
 int flash_erase(int blockCount) {
 	int i;
 	// varify wrKey is loaded before proceding
-	if(wrKey == 0) {
+	if(wrKey != 0xA442 || wrKey != 0x71D5) {
 		return -1;
 	}
 	// iterate through blockCount
@@ -39,7 +36,7 @@ int flash_write(const unsigned long data) {
 	// get number of blocks to erase
 	int blockCount = (((sizeof(unsigned long))/1024) + 1);
 	// check WRKEY is set before proceding
-	if(wrKey == 0) {
+	if(wrKey != 0xA442 || wrKey != 0x71D5) {
 		return -1;
 	}
 	// blocks must be erased before being written

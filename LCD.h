@@ -1,8 +1,26 @@
 #ifndef LCD_H
 #define LCD_H
 
+/**
+ * LCD.h
+ * ------------------
+ * AUTHOR: Luke Coles
+ * 
+ * ------------------
+ * LCD driver library for Tiva Launchpad. Provides functions for 
+ * initialisation, display of data, and writing commands. 
+ * Also contains QOL function such as printing strings, char values.
+ * 
+ * Assumes following LCD connections:
+ * LCD Data bits 7-4  ->  PB3-0
+ * LCD RS bit         ->  PA 3
+ * LCD EN bit         ->  PA2
+ * ------------------
+ * 
+*/
+
 /* register address definitions*/
-#define SYSCTL_RCG2_R (* ((volatile unsigned long *) 0x400FE108))
+#define SYSCTL_RCG2_R       (*((volatile unsigned long *) 0x400FE108))
 // port A
 #define GPIO_PORTA_DIR_R    (*((volatile unsigned long *) 0x40004400))
 #define GPIO_PORTA_AFSEL_R  (*((volatile unsigned long *) 0x40004420))
@@ -13,7 +31,7 @@
 #define GPIO_PORTA_AMSEL_R  (*((volatile unsigned long *) 0x40004528))
 #define GPIO_PORTA_PCTL_R   (*((volatile unsigned long *) 0x4000452C))
 // port B
-#define DATA			    (*((volatile unsigned long *) 0x400053FC))
+#define DATA                (*((volatile unsigned long *) 0x400053FC))
 #define GPIO_PORTB_DIR_R    (*((volatile unsigned long *) 0x40005400))
 #define GPIO_PORTB_AFSEL_R  (*((volatile unsigned long *) 0x40005420))
 #define GPIO_PORTB_PUR_R    (*((volatile unsigned long *) 0x40005510))
@@ -23,8 +41,8 @@
 #define GPIO_PORTB_AMSEL_R  (*((volatile unsigned long *) 0x40005528))
 #define GPIO_PORTB_PCTL_R   (*((volatile unsigned long *) 0x4000552C))
 // E/RS pins
-#define EN					(*((volatile unsigned long *) 0x40004010))
-#define RS  				(*((volatile unsigned long *) 0x40004020))
+#define EN                  (*((volatile unsigned long *) 0x40004010))
+#define RS                  (*((volatile unsigned long *) 0x40004020))
 
 // enable/disable debug messages
 #define DEBUG_ON 0
@@ -77,7 +95,7 @@ void lcd_print_char(char c);
  * 
  * c: char to print
 */
-void lcd_print_char_literal(char c);
+void lcd_print_char_value(char c);
 
 /**
  * Print a char array to the LCD

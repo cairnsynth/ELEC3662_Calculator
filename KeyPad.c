@@ -2,9 +2,9 @@
 #include "PLL.h"
 
 unsigned char key[4][4] = 	{{'1', '2', '3', '+'},
-							{'4', '5', '6', '-'},
-							{'7', '8', '9', '.'},
-							{'=', '0', 'C', 'S'}};
+                            {'4', '5', '6', '-'},
+                            {'7', '8', '9', '.'},
+                            {'=', '0', 'C', 'S'}};
 
 void keypad_init(void) {
 	volatile unsigned long delay;
@@ -14,10 +14,10 @@ void keypad_init(void) {
 	GPIO_PORTD_AMSEL_R &= 0x00;  // disable analog function
 	GPIO_PORTD_PCTL_R  &= 0x00000000;  // PCTL GPIO on PD3-0
 	GPIO_PORTD_DIR_R   |= 0x00;  // set PD3-0 to input
-	GPIO_PORTD_AFSEL_R &= 0x00;	 // disable port d alt function
-	GPIO_PORTD_PUR_R   &= 0x00;	 // disable pull-up resistors
-	GPIO_PORTD_PDR_R   |= 0x0F;	 //Enable pull-down resistors
-	GPIO_PORTD_DEN_R   |= 0x0F;	 //Enable digital I/O on PD3-0
+	GPIO_PORTD_AFSEL_R &= 0x00;  // disable port d alt function
+	GPIO_PORTD_PUR_R   &= 0x00;  // disable pull-up resistors
+	GPIO_PORTD_PDR_R   |= 0x0F;  //Enable pull-down resistors
+	GPIO_PORTD_DEN_R   |= 0x0F;  //Enable digital I/O on PD3-0
 	
 	GPIO_PORTE_AMSEL_R &= 0x00;
 	GPIO_PORTE_PCTL_R  &= 0x00;
@@ -27,7 +27,13 @@ void keypad_init(void) {
 	GPIO_PORTE_DEN_R   |= 0x0F;
 	
 }
-// REF: https://microcontrollerslab.com/4x4-keypad-interfacing-tm4c123-tiva-launchpad-keil/
+/**
+ * adapted from Microcontrollers Lab
+ * REF:
+ * Microcontrollers Lab, 4×4 Keypad Interfacing with TM4C123 Tiva Launchpad,
+ * <https://microcontrollerslab.com/4x4-keypad-interfacing-tm4c123-tiva-launchpad-keil/>
+ * [accessed 12/01/2023]
+*/
 unsigned char keypad_read(void) {
 	int x=0, y=0;  // loop iterators
 	// loop through columns

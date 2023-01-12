@@ -1,6 +1,23 @@
 #ifndef PLL_H
 #define PLL_H
 
+/**
+ * PLL.h
+ * ------------------
+ * AUTHOR: Luke Coles
+ * 
+ * ------------------
+ * Library containing functions that provide varying length delays.
+ * Makes use of PLL and SysTick
+ * ------------------
+ * REFS:
+ * 
+ * Jonathan Valvano, Ramesh Yerraballi, Finite State Machines,
+ * <//http://users.ece.utexas.edu/~valvano/Volume1/E-Book/C10_FiniteStateMachines.htm>
+ * [accessed 12/01/2023]
+ * 
+*/
+
 /* register address definitions */
 #define SYSCTL_RCC_R       (*((volatile unsigned long *) 0x400FE060))
 #define SYSCTL_RCC2_R	   (*((volatile unsigned long *) 0x400FE070))

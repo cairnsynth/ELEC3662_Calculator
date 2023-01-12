@@ -175,11 +175,11 @@ void clear_calculator(void) {
 	int i;  // loop iterator
 	// loop through input buffer, clearing characters
 	for(i = 0; i < INPUT_BUFFER_SIZE; i++) {
-		inputBuffer[i] = ' ';
+		inputBuffer[i] = '\0';
 	}
 	// loop through output buffer, clearing characters
 	for(i = 0; i < OUTPUT_BUFFER_SIZE; i++) {
-		outputBuffer[i] = ' ';
+		outputBuffer[i] = '\0';
 	}
 	// reset input index
 	inputIndex = 0;

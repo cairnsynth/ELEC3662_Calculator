@@ -3,7 +3,6 @@
 #include "LCD.h"
 
 Token shunting_yard(char inputArray[]) {
-	debug_mess("BEGIN");
     // stacks used in each stage of conversion/calculation
     Stack tokenStack;    
     Stack outputStack;

@@ -3,14 +3,20 @@
 
 /**
  * ShuntingYard.h
- *   ------------------
- *  AUTHOR: Luke Coles
- *  SID: 201331120
- *  ------------------
- *  Basic implementation of Dijkstra's Shunting Yard Algorithm
- *  REF: https://brilliant.org/wiki/shunting-yard-algorithm/
+ * ------------------
+ * AUTHOR: Luke Coles
  * 
- * Functions enable conversion of infix to postfix and calculation
+ * ------------------
+ * Library providing functions to handle performing calculations on the
+ * calculator. 
+ * Implements Dijkstra's Shunting Yard algorithm in a basic form
+ * to convert infix notation to postfix notation.
+ * Performs postfix calculation using stacks
+ * 
+ * Shunting Yard algorithm description: 
+ * https://brilliant.org/wiki/shunting-yard-algorithm/
+ * ------------------
+ * 
 */
 
 /**

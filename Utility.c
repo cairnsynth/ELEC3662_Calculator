@@ -1,6 +1,11 @@
 #include "Utility.h"
 
-//REF: https://www.techiedelight.com/implement-strcpy-function-c/
+/**
+ * REF:
+ * Techie Delight, Implement strcpy() function in C,
+ * <https://www.techiedelight.com/implement-strcpy-function-c/>
+ * [accessed 12/01/2023]
+*/
 char* copy_string(char* destination, const char* source) {
 	char* ptr;
 	// if destination is null, return 0
@@ -14,7 +19,12 @@ char* copy_string(char* destination, const char* source) {
 	return ptr;
 }
 
- //REF: https://www.geeksforgeeks.org/convert-floating-point-number-string/
+/**
+ * REF:
+ * GeeksForGeeks, Convert a floating point number to string in C,
+ * <https://www.geeksforgeeks.org/convert-floating-point-number-string/>
+ * [accessed 12/01/2023]
+*/
 void reverse_string(char* str, int length) {
 	int i = 0, j = length -1;
 	char temp;
@@ -57,7 +67,11 @@ int int_to_string(int i, char str[], int d) {
 	return length;
 }
 
-//REF: https://www.geeksforgeeks.org/convert-floating-point-number-string/
+/**
+ * GeeksForGeeks, Convert a floating point number to string in C,
+ * <https://www.geeksforgeeks.org/convert-floating-point-number-string/>
+ * [accessed 12/01/2023]
+*/
 void double_to_string(double f, char* str, int resolution) {
 	int integerPart, length, isNegative = 0;
 	double floatingPart;
@@ -72,7 +86,7 @@ void double_to_string(double f, char* str, int resolution) {
 	if(resolution != 0) {
 			str[length] = '.';
 			floatingPart = floatingPart * int_exp(10, resolution);
-			int_to_string(floatingPart, str + length + 1, resolution);
+			int_to_string(floatingPart, str + length + 1, 0);
 	}
 }
 
@@ -89,7 +103,12 @@ int get_int_length(int i) {
 	return count;
 }
 
-//REF: https://stackoverflow.com/questions/29787310/does-pow-work-for-int-data-type-in-c
+/**
+ * REF:
+ * haccks, Does pow() work for int data type in C? [duplicate],
+ * <https://stackoverflow.com/questions/29787310/does-pow-work-for-int-data-type-in-c>
+ * [accessed 12/01/2023]
+*/
 unsigned int_exp(unsigned base, unsigned exp) {
 	// initialised at 1 to avoid times by 0
 	unsigned result = 1;

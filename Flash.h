@@ -1,9 +1,28 @@
 #ifndef FLASH_H
 #define FLASH_H
 
+/**
+ * Flash.h
+ * ------------------
+ * AUTHOR: Luke Coles
+ * 
+ * ------------------
+ * Library providing basic read and write access to the TM4C123GXL
+ * on-chip flash memory.
+ * ------------------
+ * REFS:
+ * 
+ * TM4C123GXL datasheet (pg. 528 - 533)
+ * 
+ * Adapting code from jspicer-code, HAL_Flash.c,
+ * <https://github.com/jspicer-code/Tiva-C-Embedded/blob/master/Experiment13-Flash/src/HAL_Flash.c>,
+ * [accessed 12/01/2023]
+ * 
+*/
+
 /* register address definitions */
 #define SYSCTL_BOOTCFG_R  (*((volatile unsigned long *) 0x400FE1D0))
-#define FLASH_FMA_R		  (*((volatile unsigned long *) 0x400FD000))
+#define FLASH_FMA_R       (*((volatile unsigned long *) 0x400FD000))
 #define FLASH_FMD_R       (*((volatile unsigned long *) 0x400FD004))
 #define FLASH_FMC_R       (*((volatile unsigned long *) 0x400FD008))
 
@@ -11,7 +30,7 @@
 // Total bits ~= 128000
 // Flash address use = 0xFA0  (128000/32)
 // Therefore FLASH_BASE_ADDR > 0xFA0 to avoid storage conflicts with code
-#define FLASH_BASE_ADDR       (((volatile unsigned long *) 0x0020000))
+#define FLASH_BASE_ADDR   (((volatile unsigned long *) 0x0020000))
 
 /**
  * Initialise flash peripheral

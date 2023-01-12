@@ -2,6 +2,32 @@
 #define UTILITY_H
 
 /**
+ * Utility.h
+ * ------------------
+ * AUTHOR: Luke Coles
+ * 
+ * ------------------
+ * Library providing various utility functions used throughout calculator
+ * firmware.
+ * ------------------
+ * REFS:
+ * 
+ * Techie Delight, Implement strcpy() function in C,
+ * <https://www.techiedelight.com/implement-strcpy-function-c/>
+ * [accessed 12/01/2023]
+ * 
+ * GeeksForGeeks, Convert a floating point number to string in C,
+ * <https://www.geeksforgeeks.org/convert-floating-point-number-string/>
+ * [accessed 12/01/2023]
+ * 
+ * haccks, Does pow() work for int data type in C? [duplicate],
+ * <https://stackoverflow.com/questions/29787310/does-pow-work-for-int-data-type-in-c>
+ * [accessed 12/01/2023]
+ * 
+ * 
+*/
+
+/**
  * Copies value of char array into another char array
  * 
  * destination: char array to be copied into

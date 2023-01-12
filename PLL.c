@@ -1,5 +1,10 @@
 #include "PLL.h"
-//http://users.ece.utexas.edu/~valvano/Volume1/E-Book/C10_FiniteStateMachines.htm
+
+/**
+ * REF: Jonathan Valvano, Ramesh Yerraballi, Finite State Machines,
+ * <//http://users.ece.utexas.edu/~valvano/Volume1/E-Book/C10_FiniteStateMachines.htm>
+ * [accessed 12/01/2023]
+*/
 void pll_init(void) {
 	SYSCTL_RCC2_R |= 0x80000000;
 	SYSCTL_RCC2_R |= 0x00000800;  // set bypass

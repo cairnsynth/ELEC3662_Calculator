@@ -36,15 +36,15 @@ void keypad_init(void) {
 */
 unsigned char keypad_read(void) {
 	int x=0, y=0;  // loop iterators
-	// loop through columns
-	for(x = 0; x < 4; x++) {
+	// loop through rows
+	for(y = 0; y < 4; y++) {
 		// set column high
-		GPIO_PORTE_DATA_R = (0x01 << x);
+		GPIO_PORTE_DATA_R = (0x01 << y);
 		pll_delay_us(20);
-		// loop through rows
-		for(y = 0; y < 4; y++) {
-			// check row is high and return corresponding char
-			if(GPIO_PORTD_DATA_R & (0x01 << y)) {
+		// loop through columns
+		for(x = 0; x < 4; x++) {
+			// check column is high and return corresponding char
+			if(GPIO_PORTD_DATA_R & (0x01 << x)) {
 				return key[y][x];
 			}
 		}

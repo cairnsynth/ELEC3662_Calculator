@@ -41,8 +41,8 @@ int main(void) {
 	lcd_init();  // lcd initialisation
 	keypad_init();  // keypad initialisation
 	flash_init();  // flash initialisation
-	
-	lcd_splash_animation();  // show splash screen
+	// show splash screen
+	lcd_splash_animation();  
 	// call enter_pw while password is incorrect
 	while(!enter_pw()) {pll_delay_ms(500);};
 	pll_delay_ms(500);
